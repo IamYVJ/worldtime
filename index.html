@@ -124,6 +124,11 @@ a{color:var(--color-primary);text-decoration:none}
 .card:hover{box-shadow:var(--shadow-md)}
 .card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:0.75rem}
 .card-city{font-size:clamp(1rem,1.5vw,1.125rem);font-weight:600;color:var(--color-text)}
+.card-local-tag{
+  font-size:0.625rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;
+  padding:0.0625rem 0.5rem;border-radius:var(--radius-full);margin-left:0.5rem;vertical-align:middle;
+  background:color-mix(in srgb,var(--color-primary) 18%,transparent);color:var(--color-primary);
+}
 .card-country{font-size:0.75rem;color:var(--color-text-muted);margin-top:0.125rem}
 .card-remove{
   width:44px;height:44px;display:flex;align-items:center;justify-content:center;
@@ -342,8 +347,32 @@ const DEFAULT_TIMEZONES = [
   "Australia/Sydney","America/Los_Angeles","America/Sao_Paulo","America/Toronto"
 ];
 
+function canonicalTz(tz) {
+  try { return Intl.DateTimeFormat('en-US', { timeZone: tz }).resolvedOptions().timeZone; }
+  catch { return tz; }
+}
+
+const LOCAL_TZ = (() => {
+  let raw;
+  try { raw = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'; }
+  catch { return 'UTC'; }
+  const canon = canonicalTz(raw);
+  const match = TIMEZONE_DATA.find(d => canonicalTz(d.id) === canon);
+  return match ? match.id : raw;
+})();
+
+if (!TIMEZONE_DATA.some(d => d.id === LOCAL_TZ)) {
+  const parts = LOCAL_TZ.split('/');
+  TIMEZONE_DATA.push({
+    id: LOCAL_TZ,
+    city: parts[parts.length - 1].replace(/_/g, ' '),
+    country: parts.length > 1 ? parts[0] : '',
+    abbr: '',
+  });
+}
+
 const state = {
-  timezones: [...DEFAULT_TIMEZONES],
+  timezones: [LOCAL_TZ, ...DEFAULT_TIMEZONES.filter(tz => tz !== LOCAL_TZ)],
   is24h: true,
   isDark: true,
   offsetMinutes: 0,
@@ -360,7 +389,7 @@ function getCurrentTime(tzId) {
   });
   const parts = tzFormatter.formatToParts(now);
   const get = (type) => parts.find(p => p.type === type)?.value || '';
-  const hour = parseInt(get('hour'), 10);
+  const hour = parseInt(get('hour'), 10) % 24;
   const minute = parseInt(get('minute'), 10);
   const second = parseInt(get('second'), 10);
   const weekday = get('weekday');
@@ -371,7 +400,7 @@ function getCurrentTime(tzId) {
   });
   const offsetParts = tzFormatterOffset.formatToParts(now);
   const tzName = offsetParts.find(p => p.type === 'timeZoneName')?.value || '';
-  const utcOffset = tzName.replace(/\s/g, ' ');
+  const utcOffset = tzName.replace(/^(GMT|UTC)/, '');
 
   return { hour, minute, second, weekday, date: dateStr, utcOffset };
 }
@@ -396,11 +425,12 @@ function getSliderValue(tzId) {
 function createCard(tzId) {
   const data = TIMEZONE_DATA.find(d => d.id === tzId);
   if (!data) return null;
+  const isLocal = tzId === LOCAL_TZ;
   const card = document.createElement('div');
   card.className = 'card';
   card.dataset.tz = tzId;
   card.setAttribute('role', 'region');
-  card.setAttribute('aria-label', data.city + ' time');
+  card.setAttribute('aria-label', data.city + (isLocal ? ' local time' : ' time'));
 
   const sliderVal = getSliderValue(tzId);
   state.sliderValues[tzId] = sliderVal;
@@ -408,12 +438,12 @@ function createCard(tzId) {
   card.innerHTML = `
     <div class="card-header">
       <div>
-        <div class="card-city">${data.city}</div>
+        <div class="card-city">${data.city}${isLocal ? '<span class="card-local-tag">Local</span>' : ''}</div>
         <div class="card-country">${data.country}</div>
       </div>
-      <button class="card-remove" data-remove="${tzId}" aria-label="Remove ${data.city}" title="Remove">
+      ${isLocal ? '' : `<button class="card-remove" data-remove="${tzId}" aria-label="Remove ${data.city}" title="Remove">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
+      </button>`}
     </div>
     <div class="card-time" id="time-${tzId.replace(/\//g, '_')}"></div>
     <div class="card-date" id="date-${tzId.replace(/\//g, '_')}"></div>
@@ -436,7 +466,8 @@ function createCard(tzId) {
   updateSliderTrack(slider, sliderVal);
 
   slider.addEventListener('input', (e) => onSliderInput(e, tzId));
-  card.querySelector('[data-remove]').addEventListener('click', () => removeTimezone(tzId));
+  const removeBtn = card.querySelector('[data-remove]');
+  if (removeBtn) removeBtn.addEventListener('click', () => removeTimezone(tzId));
 
   return card;
 }
@@ -516,7 +547,7 @@ function renderAllCards() {
         const tzNumFmt = new Intl.DateTimeFormat('en-US', { timeZone: tzId, month: 'numeric', day: 'numeric', year: 'numeric' });
         const adjNumParts = tzNumFmt.formatToParts(adjNow);
         const agp = (type) => adjNumParts.find(p => p.type === type)?.value || '';
-        const localDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const localDate = new Date(adjNow.getFullYear(), adjNow.getMonth(), adjNow.getDate());
         const tzDate = new Date(parseInt(agp('year'), 10), parseInt(agp('month'), 10) - 1, parseInt(agp('day'), 10));
         const dayDiff = Math.round((tzDate - localDate) / 86400000);
         let dayFlag = '';
@@ -526,7 +557,7 @@ function renderAllCards() {
         else if (dayDiff < -1) dayFlag = '<span class="card-date-offset backward">' + dayDiff + ' days</span>';
         dateEl.innerHTML = gp('weekday') + ', ' + gp('month') + ' ' + gp('day') + ', ' + gp('year') + dayFlag;
       }
-      if (utcEl) utcEl.textContent = 'UTC ' + t.utcOffset;
+      if (utcEl) utcEl.textContent = 'UTC' + t.utcOffset;
 
       const currentSliderVal = adjustedHour * 60 + adjustedMinute;
       state.sliderValues[tzId] = currentSliderVal;
@@ -674,11 +705,11 @@ function toggleTheme() {
   if (state.isDark) {
     sunIcon.style.display = '';
     moonIcon.style.display = 'none';
-    label.textContent = 'Dark';
+    label.textContent = 'Light';
   } else {
     sunIcon.style.display = 'none';
     moonIcon.style.display = '';
-    label.textContent = 'Light';
+    label.textContent = 'Dark';
   }
 }
 
