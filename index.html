@@ -381,28 +381,40 @@ const state = {
   sliderValues: {},
 };
 
-function getCurrentTime(tzId) {
-  const now = new Date();
+function getCurrentTime(tzId, when) {
+  const instant = when || new Date();
   const tzFormatter = new Intl.DateTimeFormat('en-US', {
     timeZone: tzId, hour: 'numeric', minute: '2-digit', second: '2-digit',
     hour12: false, weekday: 'short', month: 'short', day: 'numeric', year: 'numeric',
   });
-  const parts = tzFormatter.formatToParts(now);
+  const parts = tzFormatter.formatToParts(instant);
   const get = (type) => parts.find(p => p.type === type)?.value || '';
   const hour = parseInt(get('hour'), 10) % 24;
   const minute = parseInt(get('minute'), 10);
   const second = parseInt(get('second'), 10);
   const weekday = get('weekday');
-  const dateStr = get('month') + ' ' + get('day') + ', ' + get('year');
+  const month = get('month');
+  const day = get('day');
+  const year = get('year');
+  const dateStr = month + ' ' + day + ', ' + year;
 
   const tzFormatterOffset = new Intl.DateTimeFormat('en-US', {
     timeZone: tzId, timeZoneName: 'shortOffset',
   });
-  const offsetParts = tzFormatterOffset.formatToParts(now);
+  const offsetParts = tzFormatterOffset.formatToParts(instant);
   const tzName = offsetParts.find(p => p.type === 'timeZoneName')?.value || '';
   const utcOffset = tzName.replace(/^(GMT|UTC)/, '');
 
-  return { hour, minute, second, weekday, date: dateStr, utcOffset };
+  return { hour, minute, second, weekday, month, day, year, date: dateStr, utcOffset };
+}
+
+// Days-since-epoch for the calendar date in a given zone at a given instant.
+function dayNumberInZone(tzId, instant) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: tzId, year: 'numeric', month: 'numeric', day: 'numeric',
+  }).formatToParts(instant);
+  const g = (type) => parseInt(parts.find(p => p.type === type)?.value || '0', 10);
+  return Math.round(Date.UTC(g('year'), g('month') - 1, g('day')) / 86400000);
 }
 
 function isDaytime(hour) {
@@ -506,30 +518,25 @@ function renderAllCards() {
     }
   });
 
-    state.timezones.forEach(tzId => {
+  const now = new Date();
+  const adjNow = new Date(now.getTime() + state.offsetMinutes * 60000);
+  const localDayNum = dayNumberInZone(LOCAL_TZ, adjNow);
+
+  state.timezones.forEach(tzId => {
     const card = grid.querySelector(`.card[data-tz="${tzId}"]`);
     if (card) {
-      const data = TIMEZONE_DATA.find(d => d.id === tzId);
-      const baseTz = tzId;
-      const now = new Date();
-      const t = getCurrentTime(baseTz);
+      // Both the time and the date are derived from the same adjusted instant,
+      // so they always stay in sync when time-travelling across midnight.
+      const t = getCurrentTime(tzId, adjNow);
+      const adjustedHour = t.hour;
+      const adjustedMinute = t.minute;
+      const adjustedSecond = t.second;
 
-      let adjustedHour = t.hour;
-      let adjustedMinute = t.minute;
-      let adjustedSecond = t.second;
-
-      if (state.offsetMinutes !== 0) {
-        let totalMinutes = adjustedHour * 60 + adjustedMinute + state.offsetMinutes;
-        while (totalMinutes < 0) totalMinutes += 1440;
-        while (totalMinutes >= 1440) totalMinutes -= 1440;
-        adjustedHour = Math.floor(totalMinutes / 60);
-        adjustedMinute = totalMinutes % 60;
-      }
-
-      const timeEl = document.getElementById('time-' + tzId.replace(/\//g, '_'));
-      const dateEl = document.getElementById('date-' + tzId.replace(/\//g, '_'));
-      const utcEl = document.getElementById('utc-' + tzId.replace(/\//g, '_'));
-      const valEl = document.getElementById('slider-val-' + tzId.replace(/\//g, '_'));
+      const key = tzId.replace(/\//g, '_');
+      const timeEl = document.getElementById('time-' + key);
+      const dateEl = document.getElementById('date-' + key);
+      const utcEl = document.getElementById('utc-' + key);
+      const valEl = document.getElementById('slider-val-' + key);
 
       if (timeEl) {
         const period = isDaytime(adjustedHour) ? 'day' : 'night';
@@ -538,24 +545,13 @@ function renderAllCards() {
           `<span class="card-period ${period}">${periodLabel}</span>`;
       }
       if (dateEl) {
-        const adjNow = new Date(now.getTime() + state.offsetMinutes * 60000);
-        const tzDateFmt = new Intl.DateTimeFormat('en-US', {
-          timeZone: tzId, weekday: 'short', month: 'short', day: 'numeric', year: 'numeric',
-        });
-        const tzParts = tzDateFmt.formatToParts(adjNow);
-        const gp = (type) => tzParts.find(p => p.type === type)?.value || '';
-        const tzNumFmt = new Intl.DateTimeFormat('en-US', { timeZone: tzId, month: 'numeric', day: 'numeric', year: 'numeric' });
-        const adjNumParts = tzNumFmt.formatToParts(adjNow);
-        const agp = (type) => adjNumParts.find(p => p.type === type)?.value || '';
-        const localDate = new Date(adjNow.getFullYear(), adjNow.getMonth(), adjNow.getDate());
-        const tzDate = new Date(parseInt(agp('year'), 10), parseInt(agp('month'), 10) - 1, parseInt(agp('day'), 10));
-        const dayDiff = Math.round((tzDate - localDate) / 86400000);
+        const dayDiff = dayNumberInZone(tzId, adjNow) - localDayNum;
         let dayFlag = '';
         if (dayDiff === 1) dayFlag = '<span class="card-date-offset forward">+1 day</span>';
         else if (dayDiff === -1) dayFlag = '<span class="card-date-offset backward">-1 day</span>';
         else if (dayDiff > 1) dayFlag = '<span class="card-date-offset forward">+' + dayDiff + ' days</span>';
         else if (dayDiff < -1) dayFlag = '<span class="card-date-offset backward">' + dayDiff + ' days</span>';
-        dateEl.innerHTML = gp('weekday') + ', ' + gp('month') + ' ' + gp('day') + ', ' + gp('year') + dayFlag;
+        dateEl.innerHTML = t.weekday + ', ' + t.month + ' ' + t.day + ', ' + t.year + dayFlag;
       }
       if (utcEl) utcEl.textContent = 'UTC' + t.utcOffset;
 
@@ -583,10 +579,16 @@ function updateBanner() {
   const banner = document.getElementById('banner');
   const bannerText = document.getElementById('bannerText');
   if (state.offsetMinutes !== 0) {
-    const sign = state.offsetMinutes > 0 ? '+' : '';
-    const h = Math.floor(Math.abs(state.offsetMinutes) / 60);
-    const m = Math.abs(state.offsetMinutes) % 60;
-    bannerText.innerHTML = 'Time Travel Active <strong>' + sign + h + 'h' + (m ? ' ' + m + 'm' : '') + '</strong>';
+    const sign = state.offsetMinutes > 0 ? '+' : '-';
+    let total = Math.abs(state.offsetMinutes);
+    const d = Math.floor(total / 1440); total %= 1440;
+    const h = Math.floor(total / 60);
+    const m = total % 60;
+    const segs = [];
+    if (d) segs.push(d + 'd');
+    if (h) segs.push(h + 'h');
+    if (m || !segs.length) segs.push(m + 'm');
+    bannerText.innerHTML = 'Time Travel Active <strong>' + sign + segs.join(' ') + '</strong>';
     banner.classList.add('visible');
   } else {
     banner.classList.remove('visible');
@@ -619,8 +621,6 @@ function stopClock() {
 
 function setOffset(deltaMinutes) {
   state.offsetMinutes += deltaMinutes;
-  if (state.offsetMinutes > 720) state.offsetMinutes -= 1440;
-  if (state.offsetMinutes < -720) state.offsetMinutes += 1440;
   renderAllCards();
 }
 
