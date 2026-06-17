@@ -295,33 +295,51 @@ a{color:var(--color-primary);text-decoration:none}
 <script>
 const TIMEZONE_DATA = [
   {id:"UTC",city:"UTC",country:"Coordinated Universal Time",abbr:"UTC"},
-  {id:"America/New_York",city:"New York",country:"United States",abbr:"EST"},
-  {id:"America/Los_Angeles",city:"Los Angeles",country:"United States",abbr:"PST"},
-  {id:"America/Chicago",city:"Chicago",country:"United States",abbr:"CST"},
-  {id:"America/Toronto",city:"Toronto",country:"Canada",abbr:"EST"},
-  {id:"America/Vancouver",city:"Vancouver",country:"Canada",abbr:"PST"},
+  {id:"America/New_York",city:"New York",country:"United States",abbr:"EST",dst:"EDT"},
+  {id:"America/Los_Angeles",city:"Los Angeles",country:"United States",abbr:"PST",dst:"PDT"},
+  {id:"America/Chicago",city:"Chicago",country:"United States",abbr:"CST",dst:"CDT"},
+  {id:"America/Toronto",city:"Toronto",country:"Canada",abbr:"EST",dst:"EDT"},
+  {id:"America/Vancouver",city:"Vancouver",country:"Canada",abbr:"PST",dst:"PDT"},
   {id:"America/Sao_Paulo",city:"S\u00e3o Paulo",country:"Brazil",abbr:"BRT"},
   {id:"America/Mexico_City",city:"Mexico City",country:"Mexico",abbr:"CST"},
   {id:"America/Buenos_Aires",city:"Buenos Aires",country:"Argentina",abbr:"ART"},
-  {id:"Europe/London",city:"London",country:"United Kingdom",abbr:"GMT"},
-  {id:"Europe/Paris",city:"Paris",country:"France",abbr:"CET"},
-  {id:"Europe/Berlin",city:"Berlin",country:"Germany",abbr:"CET"},
-  {id:"Europe/Madrid",city:"Madrid",country:"Spain",abbr:"CET"},
-  {id:"Europe/Rome",city:"Rome",country:"Italy",abbr:"CET"},
-  {id:"Europe/Amsterdam",city:"Amsterdam",country:"Netherlands",abbr:"CET"},
-  {id:"Europe/Stockholm",city:"Stockholm",country:"Sweden",abbr:"CET"},
+  {id:"America/Denver",city:"Denver",country:"United States",abbr:"MST",dst:"MDT"},
+  {id:"America/Phoenix",city:"Phoenix",country:"United States",abbr:"MST"},
+  {id:"America/Anchorage",city:"Anchorage",country:"United States",abbr:"AKST",dst:"AKDT"},
+  {id:"America/Bogota",city:"Bogota",country:"Colombia",abbr:"COT"},
+  {id:"America/Lima",city:"Lima",country:"Peru",abbr:"PET"},
+  {id:"America/Santiago",city:"Santiago",country:"Chile",abbr:"CLT",dst:"CLST"},
+  {id:"Europe/London",city:"London",country:"United Kingdom",abbr:"GMT",dst:"BST"},
+  {id:"Europe/Paris",city:"Paris",country:"France",abbr:"CET",dst:"CEST"},
+  {id:"Europe/Berlin",city:"Berlin",country:"Germany",abbr:"CET",dst:"CEST"},
+  {id:"Europe/Madrid",city:"Madrid",country:"Spain",abbr:"CET",dst:"CEST"},
+  {id:"Europe/Rome",city:"Rome",country:"Italy",abbr:"CET",dst:"CEST"},
+  {id:"Europe/Amsterdam",city:"Amsterdam",country:"Netherlands",abbr:"CET",dst:"CEST"},
+  {id:"Europe/Stockholm",city:"Stockholm",country:"Sweden",abbr:"CET",dst:"CEST"},
   {id:"Europe/Moscow",city:"Moscow",country:"Russia",abbr:"MSK"},
   {id:"Europe/Istanbul",city:"Istanbul",country:"Turkey",abbr:"TRT"},
-  {id:"Africa/Cairo",city:"Cairo",country:"Egypt",abbr:"EET"},
+  {id:"Europe/Dublin",city:"Dublin",country:"Ireland",abbr:"GMT",dst:"IST"},
+  {id:"Europe/Lisbon",city:"Lisbon",country:"Portugal",abbr:"WET",dst:"WEST"},
+  {id:"Europe/Zurich",city:"Zurich",country:"Switzerland",abbr:"CET",dst:"CEST"},
+  {id:"Europe/Vienna",city:"Vienna",country:"Austria",abbr:"CET",dst:"CEST"},
+  {id:"Europe/Athens",city:"Athens",country:"Greece",abbr:"EET",dst:"EEST"},
+  {id:"Europe/Warsaw",city:"Warsaw",country:"Poland",abbr:"CET",dst:"CEST"},
+  {id:"Europe/Kyiv",city:"Kyiv",country:"Ukraine",abbr:"EET",dst:"EEST"},
+  {id:"Africa/Cairo",city:"Cairo",country:"Egypt",abbr:"EET",dst:"EEST"},
   {id:"Africa/Lagos",city:"Lagos",country:"Nigeria",abbr:"WAT"},
   {id:"Africa/Johannesburg",city:"Johannesburg",country:"South Africa",abbr:"SAST"},
   {id:"Africa/Nairobi",city:"Nairobi",country:"Kenya",abbr:"EAT"},
+  {id:"Africa/Accra",city:"Accra",country:"Ghana",abbr:"GMT"},
   {id:"Asia/Dubai",city:"Dubai",country:"UAE",abbr:"GST"},
   {id:"Asia/Kolkata",city:"Mumbai",country:"India",abbr:"IST"},
   {id:"Asia/Karachi",city:"Karachi",country:"Pakistan",abbr:"PKT"},
   {id:"Asia/Dhaka",city:"Dhaka",country:"Bangladesh",abbr:"BST"},
   {id:"Asia/Colombo",city:"Colombo",country:"Sri Lanka",abbr:"IST"},
+  {id:"Asia/Kathmandu",city:"Kathmandu",country:"Nepal",abbr:"NPT"},
   {id:"Asia/Bangkok",city:"Bangkok",country:"Thailand",abbr:"ICT"},
+  {id:"Asia/Ho_Chi_Minh",city:"Ho Chi Minh City",country:"Vietnam",abbr:"ICT"},
+  {id:"Asia/Manila",city:"Manila",country:"Philippines",abbr:"PHT"},
+  {id:"Asia/Taipei",city:"Taipei",country:"Taiwan",abbr:"CST"},
   {id:"Asia/Singapore",city:"Singapore",country:"Singapore",abbr:"SGT"},
   {id:"Asia/Kuala_Lumpur",city:"Kuala Lumpur",country:"Malaysia",abbr:"MYT"},
   {id:"Asia/Hong_Kong",city:"Hong Kong",country:"Hong Kong",abbr:"HKT"},
@@ -331,14 +349,111 @@ const TIMEZONE_DATA = [
   {id:"Asia/Jakarta",city:"Jakarta",country:"Indonesia",abbr:"WIB"},
   {id:"Asia/Tehran",city:"Tehran",country:"Iran",abbr:"IRST"},
   {id:"Asia/Riyadh",city:"Riyadh",country:"Saudi Arabia",abbr:"AST"},
-  {id:"Asia/Jerusalem",city:"Jerusalem",country:"Israel",abbr:"IST"},
-  {id:"Australia/Sydney",city:"Sydney",country:"Australia",abbr:"AEDT"},
-  {id:"Australia/Melbourne",city:"Melbourne",country:"Australia",abbr:"AEDT"},
+  {id:"Asia/Jerusalem",city:"Jerusalem",country:"Israel",abbr:"IST",dst:"IDT"},
+  {id:"Australia/Sydney",city:"Sydney",country:"Australia",abbr:"AEST",dst:"AEDT"},
+  {id:"Australia/Melbourne",city:"Melbourne",country:"Australia",abbr:"AEST",dst:"AEDT"},
   {id:"Australia/Perth",city:"Perth",country:"Australia",abbr:"AWST"},
+  {id:"Australia/Adelaide",city:"Adelaide",country:"Australia",abbr:"ACST",dst:"ACDT"},
   {id:"Australia/Brisbane",city:"Brisbane",country:"Australia",abbr:"AEST"},
-  {id:"Pacific/Auckland",city:"Auckland",country:"New Zealand",abbr:"NZDT"},
+  {id:"Pacific/Auckland",city:"Auckland",country:"New Zealand",abbr:"NZST",dst:"NZDT"},
   {id:"Pacific/Honolulu",city:"Honolulu",country:"United States",abbr:"HST"},
   {id:"Pacific/Fiji",city:"Suva",country:"Fiji",abbr:"FJT"},
+  // Cities that share an IANA zone with an entry above. They carry an explicit
+  // `key` so each gets its own card even though the underlying zone is identical.
+  {key:"America/New_York|Boston",id:"America/New_York",city:"Boston",country:"United States",abbr:"EST",dst:"EDT"},
+  {key:"America/New_York|Washington",id:"America/New_York",city:"Washington, D.C.",country:"United States",abbr:"EST",dst:"EDT"},
+  {key:"America/New_York|Miami",id:"America/New_York",city:"Miami",country:"United States",abbr:"EST",dst:"EDT"},
+  {key:"America/Los_Angeles|San_Francisco",id:"America/Los_Angeles",city:"San Francisco",country:"United States",abbr:"PST",dst:"PDT"},
+  {key:"America/Los_Angeles|Seattle",id:"America/Los_Angeles",city:"Seattle",country:"United States",abbr:"PST",dst:"PDT"},
+  {key:"America/Los_Angeles|Las_Vegas",id:"America/Los_Angeles",city:"Las Vegas",country:"United States",abbr:"PST",dst:"PDT"},
+  {key:"America/Chicago|Houston",id:"America/Chicago",city:"Houston",country:"United States",abbr:"CST",dst:"CDT"},
+  {key:"America/Chicago|Dallas",id:"America/Chicago",city:"Dallas",country:"United States",abbr:"CST",dst:"CDT"},
+  {key:"Asia/Shanghai|Beijing",id:"Asia/Shanghai",city:"Beijing",country:"China",abbr:"CST"},
+  {key:"Europe/Madrid|Barcelona",id:"Europe/Madrid",city:"Barcelona",country:"Spain",abbr:"CET",dst:"CEST"},
+  {key:"Europe/Berlin|Munich",id:"Europe/Berlin",city:"Munich",country:"Germany",abbr:"CET",dst:"CEST"},
+  {key:"Europe/Berlin|Frankfurt",id:"Europe/Berlin",city:"Frankfurt",country:"Germany",abbr:"CET",dst:"CEST"},
+  {key:"Europe/Rome|Milan",id:"Europe/Rome",city:"Milan",country:"Italy",abbr:"CET",dst:"CEST"},
+
+  // ── Additional major cities & capitals in distinct IANA zones ──
+  // Americas
+  {id:"America/Edmonton",city:"Calgary",country:"Canada",abbr:"MST",dst:"MDT"},
+  {id:"America/Halifax",city:"Halifax",country:"Canada",abbr:"AST",dst:"ADT"},
+  {id:"America/St_Johns",city:"St. John's",country:"Canada",abbr:"NST",dst:"NDT"},
+  {id:"America/Havana",city:"Havana",country:"Cuba",abbr:"CST",dst:"CDT"},
+  {id:"America/Panama",city:"Panama City",country:"Panama",abbr:"EST"},
+  {id:"America/Guatemala",city:"Guatemala City",country:"Guatemala",abbr:"CST"},
+  {id:"America/Santo_Domingo",city:"Santo Domingo",country:"Dominican Republic",abbr:"AST"},
+  {id:"America/Caracas",city:"Caracas",country:"Venezuela",abbr:"VET"},
+  {id:"America/Guayaquil",city:"Quito",country:"Ecuador",abbr:"ECT"},
+  {id:"America/La_Paz",city:"La Paz",country:"Bolivia",abbr:"BOT"},
+  {id:"America/Montevideo",city:"Montevideo",country:"Uruguay",abbr:"UYT"},
+  {id:"Atlantic/Cape_Verde",city:"Praia",country:"Cape Verde",abbr:"CVT"},
+  {id:"Pacific/Pago_Pago",city:"Pago Pago",country:"American Samoa",abbr:"SST"},
+  {id:"Pacific/Tahiti",city:"Papeete",country:"French Polynesia",abbr:"TAHT"},
+  // Europe
+  {id:"Europe/Brussels",city:"Brussels",country:"Belgium",abbr:"CET",dst:"CEST"},
+  {id:"Europe/Copenhagen",city:"Copenhagen",country:"Denmark",abbr:"CET",dst:"CEST"},
+  {id:"Europe/Oslo",city:"Oslo",country:"Norway",abbr:"CET",dst:"CEST"},
+  {id:"Europe/Prague",city:"Prague",country:"Czechia",abbr:"CET",dst:"CEST"},
+  {id:"Europe/Budapest",city:"Budapest",country:"Hungary",abbr:"CET",dst:"CEST"},
+  {id:"Europe/Belgrade",city:"Belgrade",country:"Serbia",abbr:"CET",dst:"CEST"},
+  {id:"Europe/Helsinki",city:"Helsinki",country:"Finland",abbr:"EET",dst:"EEST"},
+  {id:"Europe/Bucharest",city:"Bucharest",country:"Romania",abbr:"EET",dst:"EEST"},
+  {id:"Europe/Sofia",city:"Sofia",country:"Bulgaria",abbr:"EET",dst:"EEST"},
+  {id:"Atlantic/Reykjavik",city:"Reykjavik",country:"Iceland",abbr:"GMT"},
+  // Africa
+  {id:"Africa/Casablanca",city:"Casablanca",country:"Morocco",abbr:"+01"},
+  {id:"Africa/Algiers",city:"Algiers",country:"Algeria",abbr:"CET"},
+  {id:"Africa/Khartoum",city:"Khartoum",country:"Sudan",abbr:"CAT"},
+  {id:"Africa/Harare",city:"Harare",country:"Zimbabwe",abbr:"CAT"},
+  // Middle East & Caucasus
+  {id:"Asia/Baghdad",city:"Baghdad",country:"Iraq",abbr:"AST"},
+  {id:"Asia/Qatar",city:"Doha",country:"Qatar",abbr:"AST"},
+  {id:"Asia/Kuwait",city:"Kuwait City",country:"Kuwait",abbr:"AST"},
+  {id:"Asia/Beirut",city:"Beirut",country:"Lebanon",abbr:"EET",dst:"EEST"},
+  {id:"Asia/Baku",city:"Baku",country:"Azerbaijan",abbr:"AZT"},
+  {id:"Asia/Tbilisi",city:"Tbilisi",country:"Georgia",abbr:"GET"},
+  {id:"Asia/Yerevan",city:"Yerevan",country:"Armenia",abbr:"AMT"},
+  {id:"Asia/Kabul",city:"Kabul",country:"Afghanistan",abbr:"AFT"},
+  // Central, North & East Asia
+  {id:"Asia/Tashkent",city:"Tashkent",country:"Uzbekistan",abbr:"UZT"},
+  {id:"Asia/Almaty",city:"Almaty",country:"Kazakhstan",abbr:"+05"},
+  {id:"Asia/Yekaterinburg",city:"Yekaterinburg",country:"Russia",abbr:"YEKT"},
+  {id:"Asia/Yangon",city:"Yangon",country:"Myanmar",abbr:"MMT"},
+  {id:"Asia/Novosibirsk",city:"Novosibirsk",country:"Russia",abbr:"+07"},
+  {id:"Asia/Makassar",city:"Denpasar",country:"Indonesia",abbr:"WITA"},
+  {id:"Asia/Ulaanbaatar",city:"Ulaanbaatar",country:"Mongolia",abbr:"ULAT"},
+  {id:"Asia/Vladivostok",city:"Vladivostok",country:"Russia",abbr:"VLAT"},
+  // Oceania & Pacific
+  {id:"Australia/Darwin",city:"Darwin",country:"Australia",abbr:"ACST"},
+  {id:"Pacific/Guam",city:"Hagåtña",country:"Guam",abbr:"ChST"},
+  {id:"Pacific/Port_Moresby",city:"Port Moresby",country:"Papua New Guinea",abbr:"PGT"},
+  {id:"Pacific/Noumea",city:"Nouméa",country:"New Caledonia",abbr:"NCT"},
+  {id:"Pacific/Tongatapu",city:"Nuku'alofa",country:"Tonga",abbr:"TOT"},
+  {id:"Pacific/Apia",city:"Apia",country:"Samoa",abbr:"WST"},
+
+  // ── More cities sharing a zone above (alias keys) ──
+  {key:"America/Toronto|Montreal",id:"America/Toronto",city:"Montreal",country:"Canada",abbr:"EST",dst:"EDT"},
+  {key:"America/Toronto|Ottawa",id:"America/Toronto",city:"Ottawa",country:"Canada",abbr:"EST",dst:"EDT"},
+  {key:"America/New_York|Atlanta",id:"America/New_York",city:"Atlanta",country:"United States",abbr:"EST",dst:"EDT"},
+  {key:"America/New_York|Philadelphia",id:"America/New_York",city:"Philadelphia",country:"United States",abbr:"EST",dst:"EDT"},
+  {key:"America/Sao_Paulo|Rio_de_Janeiro",id:"America/Sao_Paulo",city:"Rio de Janeiro",country:"Brazil",abbr:"BRT"},
+  {key:"America/Sao_Paulo|Brasilia",id:"America/Sao_Paulo",city:"Brasília",country:"Brazil",abbr:"BRT"},
+  {key:"Europe/Zurich|Geneva",id:"Europe/Zurich",city:"Geneva",country:"Switzerland",abbr:"CET",dst:"CEST"},
+  {key:"Europe/Moscow|Saint_Petersburg",id:"Europe/Moscow",city:"Saint Petersburg",country:"Russia",abbr:"MSK"},
+  {key:"Africa/Nairobi|Addis_Ababa",id:"Africa/Nairobi",city:"Addis Ababa",country:"Ethiopia",abbr:"EAT"},
+  {key:"Africa/Lagos|Kinshasa",id:"Africa/Lagos",city:"Kinshasa",country:"DR Congo",abbr:"WAT"},
+  {key:"Asia/Dubai|Abu_Dhabi",id:"Asia/Dubai",city:"Abu Dhabi",country:"UAE",abbr:"GST"},
+  {key:"Asia/Jerusalem|Tel_Aviv",id:"Asia/Jerusalem",city:"Tel Aviv",country:"Israel",abbr:"IST",dst:"IDT"},
+  {key:"Asia/Kolkata|New_Delhi",id:"Asia/Kolkata",city:"New Delhi",country:"India",abbr:"IST"},
+  {key:"Asia/Kolkata|Bengaluru",id:"Asia/Kolkata",city:"Bengaluru",country:"India",abbr:"IST"},
+  {key:"Asia/Karachi|Islamabad",id:"Asia/Karachi",city:"Islamabad",country:"Pakistan",abbr:"PKT"},
+  {key:"Asia/Ho_Chi_Minh|Hanoi",id:"Asia/Ho_Chi_Minh",city:"Hanoi",country:"Vietnam",abbr:"ICT"},
+  {key:"Asia/Shanghai|Guangzhou",id:"Asia/Shanghai",city:"Guangzhou",country:"China",abbr:"CST"},
+  {key:"Asia/Shanghai|Shenzhen",id:"Asia/Shanghai",city:"Shenzhen",country:"China",abbr:"CST"},
+  {key:"Asia/Tokyo|Osaka",id:"Asia/Tokyo",city:"Osaka",country:"Japan",abbr:"JST"},
+  {key:"Australia/Sydney|Canberra",id:"Australia/Sydney",city:"Canberra",country:"Australia",abbr:"AEST",dst:"AEDT"},
+  {key:"Pacific/Auckland|Wellington",id:"Pacific/Auckland",city:"Wellington",country:"New Zealand",abbr:"NZST",dst:"NZDT"},
 ];
 
 const DEFAULT_TIMEZONES = [
@@ -369,6 +484,20 @@ if (!TIMEZONE_DATA.some(d => d.id === LOCAL_TZ)) {
     country: parts.length > 1 ? parts[0] : '',
     abbr: '',
   });
+}
+
+// Each card is identified by a stable `key`. Alias cities (several cities sharing
+// one IANA zone, e.g. Boston/New York) declare their own `key`; everything else
+// keys by its IANA id. The id is always used for the actual time calculations.
+TIMEZONE_DATA.forEach(d => { if (!d.key) d.key = d.id; });
+
+function dataByKey(key) {
+  return TIMEZONE_DATA.find(d => d.key === key) || TIMEZONE_DATA.find(d => d.id === key);
+}
+
+// DOM-safe, collision-free element id derived from a card key.
+function domId(key) {
+  return key.replace(/[^a-zA-Z0-9]+/g, '_');
 }
 
 const state = {
@@ -417,6 +546,41 @@ function dayNumberInZone(tzId, instant) {
   return Math.round(Date.UTC(g('year'), g('month') - 1, g('day')) / 86400000);
 }
 
+// Offset (in minutes, east-positive) of a zone at a given instant.
+function zoneOffsetMinutes(tzId, date) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: tzId, hour12: false,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+  }).formatToParts(date);
+  const g = (t) => parseInt(parts.find(p => p.type === t)?.value || '0', 10);
+  const asUTC = Date.UTC(g('year'), g('month') - 1, g('day'), g('hour') % 24, g('minute'), g('second'));
+  return Math.round((asUTC - date.getTime()) / 60000);
+}
+
+// Real, DST-aware short zone name (e.g. EDT in summer, EST in winter).
+// `data` is the TIMEZONE_DATA entry: `abbr` is the standard-time name and the
+// optional `dst` is the daylight-time name. We trust the engine when it returns
+// a genuine letter abbreviation (mainly US/Canada zones); otherwise we pick
+// standard vs daylight by detecting whether the zone is in DST right now.
+function zoneAbbr(tzId, data, when) {
+  const now = when || new Date();
+  try {
+    const name = new Intl.DateTimeFormat('en-US', { timeZone: tzId, timeZoneName: 'short' })
+      .formatToParts(now).find(p => p.type === 'timeZoneName')?.value || '';
+    if (name && !/^(GMT|UTC)/i.test(name)) return name;
+  } catch (e) {}
+  const std = (data && data.abbr) || '';
+  const dst = data && data.dst;
+  if (!dst) return std;
+  const year = now.getUTCFullYear();
+  const janOff = zoneOffsetMinutes(tzId, new Date(Date.UTC(year, 0, 15)));
+  const julOff = zoneOffsetMinutes(tzId, new Date(Date.UTC(year, 6, 15)));
+  if (janOff === julOff) return std; // zone doesn't actually observe DST
+  const dstOff = Math.max(janOff, julOff);
+  return zoneOffsetMinutes(tzId, now) === dstOff ? dst : std;
+}
+
 function isDaytime(hour) {
   return hour >= 6 && hour < 18;
 }
@@ -428,24 +592,26 @@ function formatTime(hour, minute, second, use24h) {
   return pad(h12) + ':' + pad(minute) + ':' + pad(second) + ' ' + (hour < 12 ? 'AM' : 'PM');
 }
 
-function getSliderValue(tzId) {
-  if (state.sliderValues[tzId] !== undefined) return state.sliderValues[tzId];
-  const t = getCurrentTime(tzId);
+function getSliderValue(key) {
+  if (state.sliderValues[key] !== undefined) return state.sliderValues[key];
+  const data = dataByKey(key);
+  const t = getCurrentTime(data ? data.id : key);
   return t.hour * 60 + t.minute;
 }
 
-function createCard(tzId) {
-  const data = TIMEZONE_DATA.find(d => d.id === tzId);
+function createCard(key) {
+  const data = dataByKey(key);
   if (!data) return null;
-  const isLocal = tzId === LOCAL_TZ;
+  const isLocal = key === LOCAL_TZ;
+  const dk = domId(key);
   const card = document.createElement('div');
   card.className = 'card';
-  card.dataset.tz = tzId;
+  card.dataset.tz = key;
   card.setAttribute('role', 'region');
   card.setAttribute('aria-label', data.city + (isLocal ? ' local time' : ' time'));
 
-  const sliderVal = getSliderValue(tzId);
-  state.sliderValues[tzId] = sliderVal;
+  const sliderVal = getSliderValue(key);
+  state.sliderValues[key] = sliderVal;
 
   card.innerHTML = `
     <div class="card-header">
@@ -453,13 +619,13 @@ function createCard(tzId) {
         <div class="card-city">${data.city}${isLocal ? '<span class="card-local-tag">Local</span>' : ''}</div>
         <div class="card-country">${data.country}</div>
       </div>
-      ${isLocal ? '' : `<button class="card-remove" data-remove="${tzId}" aria-label="Remove ${data.city}" title="Remove">
+      ${isLocal ? '' : `<button class="card-remove" data-remove="${key}" aria-label="Remove ${data.city}" title="Remove">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>`}
     </div>
-    <div class="card-time" id="time-${tzId.replace(/\//g, '_')}"></div>
-    <div class="card-date" id="date-${tzId.replace(/\//g, '_')}"></div>
-    <div class="card-utc" id="utc-${tzId.replace(/\//g, '_')}"></div>
+    <div class="card-time" id="time-${dk}"></div>
+    <div class="card-date" id="date-${dk}"></div>
+    <div class="card-utc" id="utc-${dk}"></div>
     <div class="slider-container">
       <div class="slider-labels">
         <span class="slider-label">12AM</span>
@@ -469,17 +635,17 @@ function createCard(tzId) {
         <span class="slider-label">11PM</span>
       </div>
       <input type="range" class="slider" min="0" max="1439" value="${sliderVal}"
-        data-tz="${tzId}" aria-label="Time slider for ${data.city}" tabindex="0">
-      <div class="slider-value" id="slider-val-${tzId.replace(/\//g, '_')}"></div>
+        data-tz="${key}" aria-label="Time slider for ${data.city}" tabindex="0">
+      <div class="slider-value" id="slider-val-${dk}"></div>
     </div>
   `;
 
   const slider = card.querySelector('.slider');
   updateSliderTrack(slider, sliderVal);
 
-  slider.addEventListener('input', (e) => onSliderInput(e, tzId));
+  slider.addEventListener('input', (e) => onSliderInput(e, key));
   const removeBtn = card.querySelector('[data-remove]');
-  if (removeBtn) removeBtn.addEventListener('click', () => removeTimezone(tzId));
+  if (removeBtn) removeBtn.addEventListener('click', () => removeTimezone(key));
 
   return card;
 }
@@ -496,10 +662,10 @@ function renderAllCards() {
 
   const desiredCards = new Set(state.timezones);
 
-  desiredCards.forEach(tzId => {
-    let card = grid.querySelector(`.card[data-tz="${tzId}"]`);
+  desiredCards.forEach(tzKey => {
+    let card = grid.querySelector(`.card[data-tz="${tzKey}"]`);
     if (!card) {
-      card = createCard(tzId);
+      card = createCard(tzKey);
       if (card) {
         grid.appendChild(card);
         requestAnimationFrame(() => requestAnimationFrame(() => card.classList.add('enter')));
@@ -507,9 +673,9 @@ function renderAllCards() {
     }
   });
 
-  existingCards.forEach(tzId => {
-    if (!desiredCards.has(tzId)) {
-      const card = grid.querySelector(`.card[data-tz="${tzId}"]`);
+  existingCards.forEach(tzKey => {
+    if (!desiredCards.has(tzKey)) {
+      const card = grid.querySelector(`.card[data-tz="${tzKey}"]`);
       if (card) {
         card.classList.remove('enter');
         card.classList.add('remove');
@@ -522,17 +688,18 @@ function renderAllCards() {
   const adjNow = new Date(now.getTime() + state.offsetMinutes * 60000);
   const localDayNum = dayNumberInZone(LOCAL_TZ, adjNow);
 
-  state.timezones.forEach(tzId => {
-    const card = grid.querySelector(`.card[data-tz="${tzId}"]`);
-    if (card) {
+  state.timezones.forEach(tzKey => {
+    const card = grid.querySelector(`.card[data-tz="${tzKey}"]`);
+    const data = dataByKey(tzKey);
+    if (card && data) {
       // Both the time and the date are derived from the same adjusted instant,
       // so they always stay in sync when time-travelling across midnight.
-      const t = getCurrentTime(tzId, adjNow);
+      const t = getCurrentTime(data.id, adjNow);
       const adjustedHour = t.hour;
       const adjustedMinute = t.minute;
       const adjustedSecond = t.second;
 
-      const key = tzId.replace(/\//g, '_');
+      const key = domId(tzKey);
       const timeEl = document.getElementById('time-' + key);
       const dateEl = document.getElementById('date-' + key);
       const utcEl = document.getElementById('utc-' + key);
@@ -545,7 +712,7 @@ function renderAllCards() {
           `<span class="card-period ${period}">${periodLabel}</span>`;
       }
       if (dateEl) {
-        const dayDiff = dayNumberInZone(tzId, adjNow) - localDayNum;
+        const dayDiff = dayNumberInZone(data.id, adjNow) - localDayNum;
         let dayFlag = '';
         if (dayDiff === 1) dayFlag = '<span class="card-date-offset forward">+1 day</span>';
         else if (dayDiff === -1) dayFlag = '<span class="card-date-offset backward">-1 day</span>';
@@ -556,7 +723,7 @@ function renderAllCards() {
       if (utcEl) utcEl.textContent = 'UTC' + t.utcOffset;
 
       const currentSliderVal = adjustedHour * 60 + adjustedMinute;
-      state.sliderValues[tzId] = currentSliderVal;
+      state.sliderValues[tzKey] = currentSliderVal;
       const slider = card.querySelector('.slider');
       if (slider) {
         if (parseInt(slider.value, 10) !== currentSliderVal) {
@@ -597,10 +764,12 @@ function updateBanner() {
 
 function tick() {
   if (state.isDragging) return;
-  state.timezones.forEach(tzId => {
-    const t = getCurrentTime(tzId);
-    if (state.sliderValues[tzId] === undefined) {
-      state.sliderValues[tzId] = t.hour * 60 + t.minute;
+  state.timezones.forEach(tzKey => {
+    const data = dataByKey(tzKey);
+    if (!data) return;
+    const t = getCurrentTime(data.id);
+    if (state.sliderValues[tzKey] === undefined) {
+      state.sliderValues[tzKey] = t.hour * 60 + t.minute;
     }
   });
   renderAllCards();
@@ -624,21 +793,21 @@ function setOffset(deltaMinutes) {
   renderAllCards();
 }
 
-function onSliderInput(event, tzId) {
+function onSliderInput(event, key) {
   const slider = event.target;
   const newMinuteOfDay = parseInt(slider.value, 10);
 
-  if (state.sliderValues[tzId] === undefined) {
-    state.sliderValues[tzId] = getSliderValue(tzId);
+  if (state.sliderValues[key] === undefined) {
+    state.sliderValues[key] = getSliderValue(key);
   }
 
-  const oldMinuteOfDay = state.sliderValues[tzId];
+  const oldMinuteOfDay = state.sliderValues[key];
   let delta = newMinuteOfDay - oldMinuteOfDay;
 
   if (delta > 720) delta -= 1440;
   if (delta < -720) delta += 1440;
 
-  state.sliderValues[tzId] = newMinuteOfDay;
+  state.sliderValues[key] = newMinuteOfDay;
 
   if (delta !== 0) {
     setOffset(delta);
@@ -671,28 +840,30 @@ document.addEventListener('touchend', () => {
 
 function resetToNow() {
   state.offsetMinutes = 0;
-  state.timezones.forEach(tzId => {
-    const t = getCurrentTime(tzId);
-    state.sliderValues[tzId] = t.hour * 60 + t.minute;
+  state.timezones.forEach(tzKey => {
+    const data = dataByKey(tzKey);
+    if (!data) return;
+    const t = getCurrentTime(data.id);
+    state.sliderValues[tzKey] = t.hour * 60 + t.minute;
   });
   renderAllCards();
 }
 
-function addTimezone(tzId) {
-  if (!state.timezones.includes(tzId)) {
-    state.timezones.push(tzId);
-    state.sliderValues[tzId] = undefined;
-    const t = getCurrentTime(tzId);
-    state.sliderValues[tzId] = t.hour * 60 + t.minute;
+function addTimezone(key) {
+  const data = dataByKey(key);
+  if (data && !state.timezones.includes(key)) {
+    state.timezones.push(key);
+    const t = getCurrentTime(data.id);
+    state.sliderValues[key] = t.hour * 60 + t.minute;
     renderAllCards();
   }
   document.getElementById('addSearch').value = '';
   renderAddList('');
 }
 
-function removeTimezone(tzId) {
-  state.timezones = state.timezones.filter(id => id !== tzId);
-  delete state.sliderValues[tzId];
+function removeTimezone(key) {
+  state.timezones = state.timezones.filter(k => k !== key);
+  delete state.sliderValues[key];
   renderAllCards();
 }
 
@@ -722,14 +893,16 @@ function toggle24h() {
 function renderAddList(query) {
   const list = document.getElementById('addList');
   const q = query.toLowerCase().trim();
-  const filtered = TIMEZONE_DATA.filter(d =>
-    !state.timezones.includes(d.id) && (
+  const filtered = TIMEZONE_DATA
+    .filter(d => !state.timezones.includes(d.key))
+    .map(d => ({ ...d, liveAbbr: zoneAbbr(d.id, d) }))
+    .filter(d =>
       d.city.toLowerCase().includes(q) ||
       d.country.toLowerCase().includes(q) ||
       d.id.toLowerCase().includes(q) ||
-      d.abbr.toLowerCase().includes(q)
-    )
-  );
+      d.abbr.toLowerCase().includes(q) ||
+      d.liveAbbr.toLowerCase().includes(q)
+    );
 
   if (filtered.length === 0) {
     list.innerHTML = '<div class="add-empty">' + (q ? 'No matching timezones found' : 'All timezones added') + '</div>';
@@ -740,9 +913,9 @@ function renderAddList(query) {
     <div class="add-item">
       <div class="add-item-info">
         <span class="add-item-city">${d.city}</span>
-        <span class="add-item-meta">${d.country} &middot; ${d.abbr}</span>
+        <span class="add-item-meta">${d.country} &middot; ${d.liveAbbr}</span>
       </div>
-      <button class="add-item-add" data-add="${d.id}" aria-label="Add ${d.city}">Add</button>
+      <button class="add-item-add" data-add="${d.key}" aria-label="Add ${d.city}">Add</button>
     </div>
   `).join('');
 
