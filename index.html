@@ -101,6 +101,12 @@ a{color:var(--color-primary);text-decoration:none}
 }
 .toggle-btn:hover{background:var(--color-surface-2);border-color:var(--color-border-strong);color:var(--color-text)}
 .toggle-btn:active{transform:scale(0.96)}
+.toggle-btn.active{
+  background:color-mix(in srgb,var(--color-primary) 14%,transparent);
+  border-color:color-mix(in srgb,var(--color-primary) 40%,transparent);
+  color:var(--color-primary-strong);
+}
+.toggle-btn.active:hover{background:color-mix(in srgb,var(--color-primary) 20%,transparent);color:var(--color-primary-strong)}
 .toggle-btn .icon{width:17px;height:17px;flex-shrink:0}
 .toggle-btn .label{display:none}
 @media(min-width:640px){.toggle-btn .label{display:inline}}
@@ -319,6 +325,10 @@ a{color:var(--color-primary);text-decoration:none}
     <button class="toggle-btn" id="btn24h" aria-label="Toggle 12/24 hour format" title="Toggle 12/24h">
       <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
       <span class="label" id="label24h">24H</span>
+    </button>
+    <button class="toggle-btn active" id="btnSeconds" aria-label="Show or hide seconds" aria-pressed="true" title="Show/hide seconds">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9.5V13l2.25 1.5"/><path d="M9 2.5h6"/><path d="M12 2.5v2"/></svg>
+      <span class="label">Seconds</span>
     </button>
     <button class="toggle-btn" id="btnTheme" aria-label="Toggle theme" title="Toggle theme">
       <svg class="icon icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41"/></svg>
@@ -561,6 +571,7 @@ const state = {
   timezones: [LOCAL_TZ, ...DEFAULT_TIMEZONES.filter(tz => tz !== LOCAL_TZ)],
   is24h: true,
   isDark: true,
+  showSeconds: true,
   offsetMinutes: 0,
   intervalId: null,
   isDragging: false,
@@ -642,11 +653,12 @@ function isDaytime(hour) {
   return hour >= 6 && hour < 18;
 }
 
-function formatTime(hour, minute, second, use24h) {
+function formatTime(hour, minute, second, use24h, showSeconds = true) {
   const pad = (n) => String(n).padStart(2, '0');
-  if (use24h) return pad(hour) + ':' + pad(minute) + ':' + pad(second);
+  const secs = showSeconds ? ':' + pad(second) : '';
+  if (use24h) return pad(hour) + ':' + pad(minute) + secs;
   const h12 = hour % 12 || 12;
-  return pad(h12) + ':' + pad(minute) + ':' + pad(second) + ' ' + (hour < 12 ? 'AM' : 'PM');
+  return pad(h12) + ':' + pad(minute) + secs + ' ' + (hour < 12 ? 'AM' : 'PM');
 }
 
 function getSliderValue(key) {
@@ -765,7 +777,7 @@ function renderAllCards() {
       if (timeEl) {
         const period = isDaytime(adjustedHour) ? 'day' : 'night';
         const periodLabel = isDaytime(adjustedHour) ? 'Day' : 'Night';
-        timeEl.innerHTML = formatTime(adjustedHour, adjustedMinute, adjustedSecond, state.is24h) +
+        timeEl.innerHTML = formatTime(adjustedHour, adjustedMinute, adjustedSecond, state.is24h, state.showSeconds) +
           `<span class="card-period ${period}">${periodLabel}</span>`;
       }
       if (dateEl) {
@@ -791,7 +803,7 @@ function renderAllCards() {
       if (valEl) {
         const h = Math.floor(currentSliderVal / 60);
         const m = currentSliderVal % 60;
-        valEl.textContent = formatTime(h, m, 0, state.is24h);
+        valEl.textContent = formatTime(h, m, 0, state.is24h, state.showSeconds);
       }
     }
   });
@@ -874,7 +886,7 @@ function onSliderInput(event, key) {
 
   const card = slider.closest('.card');
   const valEl = card.querySelector('.slider-value');
-  valEl.textContent = formatTime(Math.floor(newMinuteOfDay / 60), newMinuteOfDay % 60, 0, state.is24h);
+  valEl.textContent = formatTime(Math.floor(newMinuteOfDay / 60), newMinuteOfDay % 60, 0, state.is24h, state.showSeconds);
 
   if (!state.isDragging) {
     state.isDragging = true;
@@ -947,6 +959,14 @@ function toggle24h() {
   renderAllCards();
 }
 
+function toggleSeconds() {
+  state.showSeconds = !state.showSeconds;
+  const btn = document.getElementById('btnSeconds');
+  btn.classList.toggle('active', state.showSeconds);
+  btn.setAttribute('aria-pressed', String(state.showSeconds));
+  renderAllCards();
+}
+
 function renderAddList(query) {
   const list = document.getElementById('addList');
   const q = query.toLowerCase().trim();
@@ -983,11 +1003,13 @@ function renderAddList(query) {
 
 function init() {
   const btn24h = document.getElementById('btn24h');
+  const btnSeconds = document.getElementById('btnSeconds');
   const btnTheme = document.getElementById('btnTheme');
   const btnReset = document.getElementById('btnReset');
   const addSearch = document.getElementById('addSearch');
 
   btn24h.addEventListener('click', toggle24h);
+  btnSeconds.addEventListener('click', toggleSeconds);
   btnTheme.addEventListener('click', toggleTheme);
   btnReset.addEventListener('click', resetToNow);
 
