@@ -293,6 +293,99 @@ a{color:var(--color-primary);text-decoration:none}
 .add-item-add:disabled{opacity:0.3;cursor:not-allowed}
 .add-empty{font-size:0.8125rem;color:var(--color-text-muted);padding:1.5rem 0;text-align:center}
 
+/* View switch tabs */
+.view-switch-bar{
+  max-width:1320px;margin:0 auto;padding:0.25rem 1.75rem 0.5rem;
+  display:flex;justify-content:center;
+}
+.view-switch{
+  display:inline-flex;padding:0.25rem;gap:0.25rem;
+  background:var(--color-surface);border:1px solid var(--color-border);
+  border-radius:var(--radius-full);box-shadow:var(--shadow-sm);
+}
+.view-tab{
+  display:flex;align-items:center;gap:0.4375rem;
+  padding:0.5rem 1.125rem;border-radius:var(--radius-full);
+  font-size:0.8125rem;font-weight:600;letter-spacing:0.01em;
+  color:var(--color-text-muted);min-height:40px;
+  transition:background var(--transition),color var(--transition);
+}
+.view-tab .icon{width:16px;height:16px;flex-shrink:0}
+.view-tab:hover{color:var(--color-text)}
+.view-tab.active{
+  background:color-mix(in srgb,var(--color-primary) 16%,transparent);
+  color:var(--color-primary-strong);
+}
+
+/* View visibility */
+[data-view="map"] #main,[data-view="map"] #addPanel,[data-view="map"] #banner{display:none!important}
+[data-view="clocks"] #mapView{display:none}
+
+/* Map view */
+.map-view{max-width:1320px;margin:0 auto;padding:1rem 1.75rem 2rem}
+.map-intro{
+  display:flex;align-items:baseline;justify-content:space-between;
+  flex-wrap:wrap;gap:0.5rem 1rem;margin-bottom:1rem;
+}
+.map-intro h2{font-size:1rem;font-weight:600;color:var(--color-text);letter-spacing:-0.01em}
+.map-intro p{font-size:0.75rem;color:var(--color-text-muted);max-width:46ch}
+.map-scroll{
+  overflow-x:auto;overflow-y:hidden;
+  border:1px solid var(--color-border);border-radius:var(--radius-lg);
+  background:var(--color-surface);box-shadow:var(--shadow-sm);
+  /* Flip vertically so the horizontal scrollbar sits on top; content is
+     flipped back below so it still reads right-side up. */
+  transform:rotateX(180deg);
+}
+.map-strip{display:flex;align-items:stretch;min-width:min-content;transform:rotateX(180deg)}
+.map-col{
+  flex:1 0 158px;min-width:158px;
+  border-right:1px solid var(--color-divider);
+  display:flex;flex-direction:column;
+}
+.map-col:last-child{border-right:none}
+.map-col.day{background:color-mix(in srgb,var(--color-day) 7%,transparent)}
+.map-col.night{background:color-mix(in srgb,var(--color-night) 9%,transparent)}
+.map-col-head{padding:0.875rem 0.875rem 0.75rem;border-bottom:1px solid var(--color-divider)}
+.map-col-offset{
+  font-size:0.6875rem;font-weight:700;letter-spacing:0.04em;
+  color:var(--color-text-muted);text-transform:uppercase;
+}
+.map-col-time{
+  font-size:1.25rem;font-weight:300;font-variant-numeric:tabular-nums;
+  letter-spacing:-0.02em;color:var(--color-text);margin-top:0.125rem;line-height:1.1;
+}
+.map-col-period{
+  display:inline-flex;align-items:center;gap:0.3125rem;margin-top:0.4375rem;
+  font-size:0.625rem;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;
+}
+.map-col.day .map-col-period{color:var(--color-day)}
+.map-col.night .map-col-period{color:var(--color-night)}
+.map-col-period .icon{width:13px;height:13px}
+.map-col-count{margin-left:auto;color:var(--color-text-faint);font-weight:500;letter-spacing:0}
+.map-col-cities{display:flex;flex-direction:column;padding:0.5rem;gap:0.125rem}
+.map-city{
+  padding:0.4375rem 0.5rem;border-radius:var(--radius-sm);
+  display:flex;flex-direction:column;gap:0.0625rem;border:1px solid transparent;
+}
+.map-city-main{display:flex;align-items:center;gap:0.375rem}
+.map-city-name{font-size:0.8125rem;font-weight:500;color:var(--color-text)}
+.map-city-sub{font-size:0.625rem;color:var(--color-text-muted);letter-spacing:0.01em}
+.map-city.selected{
+  background:color-mix(in srgb,var(--color-primary) 10%,transparent);
+  border-color:color-mix(in srgb,var(--color-primary) 24%,transparent);
+}
+.map-city.selected .map-city-name{color:var(--color-primary-strong)}
+.map-city.local{
+  background:color-mix(in srgb,var(--color-primary) 15%,transparent);
+  border-color:color-mix(in srgb,var(--color-primary) 36%,transparent);
+}
+.map-city-tag{
+  font-size:0.5rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;
+  padding:0.0625rem 0.375rem;border-radius:var(--radius-full);
+  background:color-mix(in srgb,var(--color-primary) 18%,transparent);color:var(--color-primary-strong);
+}
+
 /* Footer */
 .footer{
   max-width:1320px;margin:0 auto;padding:1.5rem 1.75rem 2.5rem;
@@ -306,7 +399,7 @@ a{color:var(--color-primary);text-decoration:none}
 ::-webkit-scrollbar-thumb:hover{background:var(--color-text-muted)}
 </style>
 </head>
-<body>
+<body data-view="clocks">
 <a href="#main" class="skip-link">Skip to main content</a>
 
 <header class="header" role="banner">
@@ -338,6 +431,19 @@ a{color:var(--color-primary);text-decoration:none}
   </div>
 </header>
 
+<div class="view-switch-bar">
+  <nav class="view-switch" role="tablist" aria-label="Choose view">
+    <button class="view-tab active" id="tabClocks" role="tab" aria-selected="true" aria-controls="main">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      Clocks
+    </button>
+    <button class="view-tab" id="tabMap" role="tab" aria-selected="false" aria-controls="mapView">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><line x1="3" y1="12" x2="21" y2="12"/><path d="M12 3c2.6 2.6 2.6 15.4 0 18M12 3c-2.6 2.6-2.6 15.4 0 18"/></svg>
+      Zone
+    </button>
+  </nav>
+</div>
+
 <div class="banner" id="banner" role="status" aria-live="polite">
   <div class="banner-inner">
     <span class="banner-text" id="bannerText">Time Travel Active</span>
@@ -355,8 +461,18 @@ a{color:var(--color-primary);text-decoration:none}
   </div>
 </div>
 
+<section id="mapView" class="map-view" aria-label="World time zones">
+  <div class="map-intro">
+    <h2>Time Zones</h2>
+    <p>Every city, grouped into vertical bands by current UTC offset &mdash; west to east. Your selected cities are highlighted.</p>
+  </div>
+  <div class="map-scroll">
+    <div class="map-strip" id="mapStrip"></div>
+  </div>
+</section>
+
 <footer class="footer">
-  <p>Worldtime &mdash; Drag sliders to travel through time.</p>
+  <p id="footerNote">Worldtime &mdash; Drag sliders to travel through time.</p>
 </footer>
 
 <script>
@@ -572,6 +688,8 @@ const state = {
   is24h: true,
   isDark: true,
   showSeconds: true,
+  view: 'clocks',
+  mapCentered: false,
   offsetMinutes: 0,
   intervalId: null,
   isDragging: false,
@@ -831,6 +949,110 @@ function updateBanner() {
   }
 }
 
+const MAP_ICON_DAY = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 3v2m0 14v2M3 12h2m14 0h2M5.6 5.6l1.4 1.4m10 10l1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4"/></svg>';
+const MAP_ICON_NIGHT = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/></svg>';
+
+// Human-readable UTC offset label from minutes east of UTC, e.g. 330 -> "UTC+5:30".
+function formatOffset(min) {
+  if (min === 0) return 'UTC';
+  const sign = min > 0 ? '+' : '-';
+  const abs = Math.abs(min);
+  const h = Math.floor(abs / 60);
+  const m = abs % 60;
+  return 'UTC' + sign + h + (m ? ':' + String(m).padStart(2, '0') : '');
+}
+
+// Map view: lay every catalog city into a vertical band keyed by its current
+// UTC offset, ordered west (negative) to east (positive). All cities in a band
+// share the same wall-clock time, so the time/day-night is shown once per band.
+function renderMap() {
+  const strip = document.getElementById('mapStrip');
+  if (!strip) return;
+  const now = new Date();
+  const adjNow = new Date(now.getTime() + state.offsetMinutes * 60000);
+
+  const groups = new Map();
+  TIMEZONE_DATA.forEach(d => {
+    const off = zoneOffsetMinutes(d.id, adjNow);
+    if (!groups.has(off)) groups.set(off, []);
+    groups.get(off).push(d);
+  });
+
+  const offsets = [...groups.keys()].sort((a, b) => a - b);
+
+  strip.innerHTML = offsets.map(off => {
+    const cities = groups.get(off);
+    cities.sort((a, b) => {
+      const la = a.key === LOCAL_TZ, lb = b.key === LOCAL_TZ;
+      if (la !== lb) return la ? -1 : 1;
+      const sa = state.timezones.includes(a.key), sb = state.timezones.includes(b.key);
+      if (sa !== sb) return sa ? -1 : 1;
+      return a.city.localeCompare(b.city);
+    });
+
+    const t = getCurrentTime(cities[0].id, adjNow);
+    const day = isDaytime(t.hour);
+    const timeStr = formatTime(t.hour, t.minute, t.second, state.is24h, state.showSeconds);
+
+    const citiesHtml = cities.map(d => {
+      const sel = state.timezones.includes(d.key);
+      const loc = d.key === LOCAL_TZ;
+      const cls = 'map-city' + (loc ? ' local' : (sel ? ' selected' : ''));
+      const abbr = zoneAbbr(d.id, d, adjNow);
+      return '<div class="' + cls + '">' +
+        '<span class="map-city-main"><span class="map-city-name">' + d.city + '</span>' +
+        (loc ? '<span class="map-city-tag">Local</span>' : '') + '</span>' +
+        '<span class="map-city-sub">' + d.country + ' &middot; ' + abbr + '</span>' +
+        '</div>';
+    }).join('');
+
+    return '<div class="map-col ' + (day ? 'day' : 'night') + '">' +
+      '<div class="map-col-head">' +
+        '<div class="map-col-offset">' + formatOffset(off) + '</div>' +
+        '<div class="map-col-time">' + timeStr + '</div>' +
+        '<div class="map-col-period">' + (day ? MAP_ICON_DAY : MAP_ICON_NIGHT) +
+          '<span>' + (day ? 'Day' : 'Night') + '</span>' +
+          '<span class="map-col-count">' + cities.length + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="map-col-cities">' + citiesHtml + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+// Render whichever view is currently active.
+function render() {
+  if (state.view === 'map') renderMap();
+  else renderAllCards();
+}
+
+function switchView(view) {
+  if (view === state.view) return;
+  state.view = view;
+  document.body.dataset.view = view;
+  const isMap = view === 'map';
+  const tabClocks = document.getElementById('tabClocks');
+  const tabMap = document.getElementById('tabMap');
+  tabMap.classList.toggle('active', isMap);
+  tabClocks.classList.toggle('active', !isMap);
+  tabMap.setAttribute('aria-selected', String(isMap));
+  tabClocks.setAttribute('aria-selected', String(!isMap));
+  const note = document.getElementById('footerNote');
+  if (note) note.textContent = isMap
+    ? 'Worldtime — Cities grouped by current UTC offset, west to east.'
+    : 'Worldtime — Drag sliders to travel through time.';
+  render();
+  // On first open, start the band strip scrolled to the middle rather than the
+  // far-western edge. Done once so a user's own scroll position is preserved.
+  if (isMap && !state.mapCentered) {
+    const scroll = document.querySelector('.map-scroll');
+    if (scroll) {
+      scroll.scrollLeft = Math.max(0, (scroll.scrollWidth - scroll.clientWidth) / 2);
+      state.mapCentered = true;
+    }
+  }
+}
+
 function tick() {
   if (state.isDragging) return;
   state.timezones.forEach(tzKey => {
@@ -841,7 +1063,7 @@ function tick() {
       state.sliderValues[tzKey] = t.hour * 60 + t.minute;
     }
   });
-  renderAllCards();
+  render();
 }
 
 function startClock() {
@@ -859,7 +1081,7 @@ function stopClock() {
 
 function setOffset(deltaMinutes) {
   state.offsetMinutes += deltaMinutes;
-  renderAllCards();
+  render();
 }
 
 function onSliderInput(event, key) {
@@ -915,7 +1137,7 @@ function resetToNow() {
     const t = getCurrentTime(data.id);
     state.sliderValues[tzKey] = t.hour * 60 + t.minute;
   });
-  renderAllCards();
+  render();
 }
 
 function addTimezone(key) {
@@ -924,7 +1146,7 @@ function addTimezone(key) {
     state.timezones.push(key);
     const t = getCurrentTime(data.id);
     state.sliderValues[key] = t.hour * 60 + t.minute;
-    renderAllCards();
+    render();
   }
   document.getElementById('addSearch').value = '';
   renderAddList('');
@@ -933,7 +1155,7 @@ function addTimezone(key) {
 function removeTimezone(key) {
   state.timezones = state.timezones.filter(k => k !== key);
   delete state.sliderValues[key];
-  renderAllCards();
+  render();
 }
 
 function toggleTheme() {
@@ -956,7 +1178,7 @@ function toggleTheme() {
 function toggle24h() {
   state.is24h = !state.is24h;
   document.getElementById('label24h').textContent = state.is24h ? '24H' : '12H';
-  renderAllCards();
+  render();
 }
 
 function toggleSeconds() {
@@ -964,7 +1186,7 @@ function toggleSeconds() {
   const btn = document.getElementById('btnSeconds');
   btn.classList.toggle('active', state.showSeconds);
   btn.setAttribute('aria-pressed', String(state.showSeconds));
-  renderAllCards();
+  render();
 }
 
 function renderAddList(query) {
@@ -1013,11 +1235,14 @@ function init() {
   btnTheme.addEventListener('click', toggleTheme);
   btnReset.addEventListener('click', resetToNow);
 
+  document.getElementById('tabClocks').addEventListener('click', () => switchView('clocks'));
+  document.getElementById('tabMap').addEventListener('click', () => switchView('map'));
+
   addSearch.addEventListener('input', (e) => renderAddList(e.target.value));
 
   document.getElementById('addPanel').classList.add('visible');
   renderAddList('');
-  renderAllCards();
+  render();
   startClock();
 }
 
