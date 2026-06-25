@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Explore — Worldtime</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%2356b4c0'%20stroke-width='1.5'%20stroke-linecap='round'%3E%3Ccircle%20cx='12'%20cy='12'%20r='9.5'/%3E%3Cellipse%20cx='12'%20cy='12'%20rx='4'%20ry='9.5'/%3E%3Cline%20x1='2.5'%20y1='12'%20x2='21.5'%20y2='12'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root,[data-theme="dark"]{
+  --color-bg:#0a0a0c;--color-surface:#141417;--color-surface-2:#1a1a1e;
+  --color-surface-offset:#232328;--color-border:oklch(1 0 0 / 0.07);
+  --color-border-strong:oklch(1 0 0 / 0.14);
+  --color-text:#ededec;--color-text-muted:#8c8c89;--color-text-faint:#56565a;
+  --color-primary:#56b4c0;--color-primary-strong:#7ccad4;--color-primary-highlight:#15282b;
+  --color-on-primary:#06181a;
+  --color-divider:oklch(1 0 0 / 0.06);--color-day:#f0b740;
+  --color-night:#8f8fce;
+  --color-glow:oklch(0.72 0.09 200 / 0.16);
+  --color-ocean:#0e1418;--color-land:#20262b;--color-land-edge:oklch(1 0 0 / 0.14);
+  --shadow-sm:0 1px 2px oklch(0 0 0 / 0.3);
+  --shadow-md:0 8px 28px -8px oklch(0 0 0 / 0.55);
+  --radius-sm:0.5rem;--radius-md:0.75rem;--radius-lg:1.125rem;
+  --radius-full:9999px;--transition:180ms cubic-bezier(0.16,1,0.3,1);
+}
+[data-theme="light"]{
+  --color-bg:#f4f3ef;--color-surface:#ffffff;--color-surface-2:#f3f1ec;
+  --color-surface-offset:#e9e6df;--color-border:oklch(0.2 0.01 80 / 0.09);
+  --color-border-strong:oklch(0.2 0.01 80 / 0.16);
+  --color-text:#191815;--color-text-muted:#6b6a64;--color-text-faint:#a8a6a0;
+  --color-primary:#0a7a82;--color-primary-strong:#055c63;--color-primary-highlight:#d9eae8;
+  --color-on-primary:#ffffff;
+  --color-divider:oklch(0.2 0.01 80 / 0.07);
+  --color-glow:oklch(0.55 0.08 200 / 0.10);
+  --color-ocean:#dfe6e6;--color-land:#fbfaf7;--color-land-edge:oklch(0.2 0.01 80 / 0.22);
+  --shadow-sm:0 1px 2px oklch(0.2 0.01 80 / 0.05);
+  --shadow-md:0 8px 28px -10px oklch(0.2 0.01 80 / 0.14);
+}
+html{font-size:16px;-webkit-text-size-adjust:100%}
+body{
+  font-family:'Inter',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:clamp(0.875rem,1.2vw,1rem);line-height:1.6;
+  color:var(--color-text);background:var(--color-bg);
+  min-height:100vh;overflow-x:hidden;position:relative;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+}
+body::before{
+  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(60rem 40rem at 15% -10%,var(--color-glow),transparent 60%),
+    radial-gradient(50rem 36rem at 100% 0%,var(--color-glow),transparent 55%);
+}
+h1,h2{font-weight:400;line-height:1.2}
+button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+a{color:var(--color-primary);text-decoration:none}
+:focus-visible{outline:2px solid var(--color-primary);outline-offset:2px;border-radius:var(--radius-sm)}
+
+.header{
+  max-width:1200px;margin:0 auto;padding:2.25rem 1.75rem 1.25rem;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;
+}
+.header-left{display:flex;align-items:center;gap:1.125rem}
+.logo{flex-shrink:0;color:var(--color-text);opacity:0.9;transition:opacity var(--transition)}
+.logo:hover{opacity:1}
+.header-title{
+  font-family:inherit;font-size:clamp(1.0625rem,2.1vw,1.375rem);
+  font-weight:250;text-transform:uppercase;letter-spacing:0.38em;
+  color:var(--color-text);line-height:1;padding-left:0.05em;
+}
+.header-tagline{
+  font-size:0.625rem;text-transform:uppercase;letter-spacing:0.26em;
+  font-weight:400;color:var(--color-text-muted);margin-top:0.5625rem;
+}
+.header-controls{display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap}
+.toggle-btn{
+  display:flex;align-items:center;gap:0.5rem;padding:0.5rem 0.875rem;
+  border-radius:var(--radius-full);background:var(--color-surface);
+  border:1px solid var(--color-border);min-height:44px;
+  transition:background var(--transition),border-color var(--transition),color var(--transition),transform var(--transition);
+  font-size:0.8125rem;font-weight:500;color:var(--color-text-muted);
+  box-shadow:var(--shadow-sm);
+}
+.toggle-btn:hover{background:var(--color-surface-2);border-color:var(--color-border-strong);color:var(--color-text)}
+.toggle-btn:active{transform:scale(0.96)}
+.toggle-btn .icon{width:17px;height:17px;flex-shrink:0}
+.toggle-btn .label{display:none}
+@media(min-width:560px){.toggle-btn .label{display:inline}}
+
+.map-wrap{max-width:1200px;margin:0 auto;padding:0.5rem 1.75rem 2rem}
+.map-intro{
+  display:flex;align-items:baseline;justify-content:space-between;
+  flex-wrap:wrap;gap:0.5rem 1rem;margin-bottom:1rem;
+}
+.map-intro h2{font-size:1rem;font-weight:600;color:var(--color-text);letter-spacing:-0.01em}
+.map-intro p{font-size:0.75rem;color:var(--color-text-muted);max-width:52ch}
+.map-frame{
+  overflow-x:auto;overflow-y:hidden;
+  border:1px solid var(--color-border);border-radius:var(--radius-lg);
+  background:var(--color-ocean);box-shadow:var(--shadow-sm);
+}
+.map-svg{display:block;width:100%;min-width:680px;height:auto}
+
+/* SVG map elements */
+.ocean{fill:var(--color-ocean)}
+.land{fill:var(--color-land);stroke:var(--color-land-edge);stroke-width:0.35;stroke-linejoin:round}
+.meridian{stroke:var(--color-divider);stroke-width:0.4}
+.meridian-0{stroke:color-mix(in srgb,var(--color-primary) 45%,transparent);stroke-width:0.6}
+.band-off{fill:var(--color-text-faint);font-size:6px;font-weight:700;letter-spacing:0.02em}
+.band-time{fill:var(--color-text-muted);font-size:6px;font-weight:500}
+.band-off,.band-time{font-variant-numeric:tabular-nums}
+/* Regions whose calendar date differs from the day shown get a tint. */
+.band-region{fill:transparent;pointer-events:none;transition:fill 220ms ease}
+.band-region.prev{fill:color-mix(in srgb,var(--color-night) 18%,transparent)}
+.band-region.next{fill:color-mix(in srgb,var(--color-day) 16%,transparent)}
+.band-day{font-size:5px;font-weight:700;letter-spacing:0.02em;font-variant-numeric:tabular-nums}
+.band-day.prev{fill:var(--color-night)}
+.band-day.next{fill:var(--color-day)}
+.dot{fill:var(--color-primary);stroke:var(--color-ocean);stroke-width:0.8}
+.dot-local{fill:var(--color-primary-strong);stroke:var(--color-ocean);stroke-width:1}
+.dot-ring{fill:none;stroke:var(--color-primary-strong);stroke-width:0.8;opacity:0.55}
+.leader{stroke:var(--color-primary);stroke-width:0.4;opacity:0.4}
+.city-name{
+  fill:var(--color-text);font-size:7px;font-weight:600;
+  paint-order:stroke;stroke:var(--color-ocean);stroke-width:1.6px;stroke-linejoin:round;
+}
+.city-time{
+  fill:var(--color-primary-strong);font-size:6.5px;font-weight:600;font-variant-numeric:tabular-nums;
+  paint-order:stroke;stroke:var(--color-ocean);stroke-width:1.6px;stroke-linejoin:round;
+}
+
+/* Time-travel bar */
+.timebar{
+  display:flex;align-items:center;gap:1rem 1.5rem;flex-wrap:wrap;
+  background:var(--color-surface);border:1px solid var(--color-border);
+  border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);
+  padding:0.875rem 1.25rem;margin-bottom:1rem;
+}
+.timebar-readout{display:flex;flex-direction:column;min-width:150px}
+.timebar-readout-top{display:flex;align-items:center;gap:0.5rem}
+.timebar-zone{
+  font-size:0.5625rem;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;
+  padding:0.125rem 0.4375rem;border-radius:var(--radius-full);
+  background:color-mix(in srgb,var(--color-primary) 16%,transparent);color:var(--color-primary-strong);
+}
+.timebar-time{
+  font-size:1.5rem;font-weight:300;font-variant-numeric:tabular-nums lining-nums;
+  letter-spacing:-0.02em;color:var(--color-text);line-height:1;
+}
+.timebar-meta{font-size:0.6875rem;color:var(--color-text-muted);margin-top:0.3125rem;letter-spacing:0.01em}
+.timebar-slider-wrap{flex:1 1 260px;display:flex;flex-direction:column;gap:0.4375rem}
+.timebar-slider{
+  -webkit-appearance:none;appearance:none;width:100%;height:5px;
+  border-radius:var(--radius-full);background:var(--color-surface-offset);
+  outline:none;cursor:pointer;
+}
+.timebar-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;width:16px;height:16px;border-radius:50%;
+  background:var(--color-primary);cursor:grab;border:3px solid var(--color-surface);
+  box-shadow:0 0 0 1px var(--color-primary),0 2px 6px oklch(0 0 0 / 0.3);
+  transition:box-shadow var(--transition),transform var(--transition);
+}
+.timebar-slider:hover::-webkit-slider-thumb{box-shadow:0 0 0 1px var(--color-primary),0 0 0 6px color-mix(in srgb,var(--color-primary) 18%,transparent)}
+.timebar-slider::-webkit-slider-thumb:active{cursor:grabbing;transform:scale(1.12)}
+.timebar-slider::-moz-range-thumb{
+  width:16px;height:16px;border-radius:50%;background:var(--color-primary);cursor:grab;
+  border:3px solid var(--color-surface);box-shadow:0 0 0 1px var(--color-primary),0 2px 6px oklch(0 0 0 / 0.3);
+}
+.timebar-ticks{display:flex;justify-content:space-between;font-size:0.5625rem;color:var(--color-text-faint);letter-spacing:0.02em;font-variant-numeric:tabular-nums}
+.timebar-reset{
+  padding:0.4375rem 1.0625rem;border-radius:var(--radius-full);
+  background:var(--color-primary);color:var(--color-on-primary);
+  font-size:0.8125rem;font-weight:600;min-height:38px;
+  transition:background var(--transition),transform var(--transition);
+}
+.timebar-reset:hover{background:var(--color-primary-strong)}
+.timebar-reset:active{transform:scale(0.96)}
+.timebar-reset[hidden]{display:none}
+.timebar-day{display:flex;align-items:center;gap:0.25rem}
+.day-btn{
+  width:34px;height:34px;display:flex;align-items:center;justify-content:center;
+  border-radius:var(--radius-full);border:1px solid var(--color-border);
+  background:var(--color-surface);color:var(--color-text-muted);flex-shrink:0;
+  transition:background var(--transition),border-color var(--transition),color var(--transition),transform var(--transition);
+}
+.day-btn:hover{background:var(--color-surface-2);border-color:var(--color-border-strong);color:var(--color-text)}
+.day-btn:active{transform:scale(0.94)}
+.day-btn .icon{width:16px;height:16px}
+.day-label{
+  min-width:108px;text-align:center;font-size:0.8125rem;font-weight:600;
+  color:var(--color-text);font-variant-numeric:tabular-nums;letter-spacing:0.01em;
+  transition:color var(--transition);
+}
+.day-label.shifted{color:var(--color-primary-strong)}
+
+.legend{
+  display:flex;flex-wrap:wrap;gap:1.25rem;margin-top:1rem;
+  font-size:0.75rem;color:var(--color-text-muted);
+}
+.legend-item{display:flex;align-items:center;gap:0.5rem}
+.legend-dot{width:10px;height:10px;border-radius:50%;background:var(--color-primary);flex-shrink:0}
+.legend-dot.local{background:var(--color-primary-strong);box-shadow:0 0 0 3px color-mix(in srgb,var(--color-primary) 30%,transparent)}
+.legend-line{width:16px;height:0;border-top:2px solid var(--color-divider);flex-shrink:0}
+.legend-swatch{width:12px;height:12px;border-radius:3px;flex-shrink:0}
+.legend-swatch.prev{background:color-mix(in srgb,var(--color-night) 45%,transparent)}
+.legend-swatch.next{background:color-mix(in srgb,var(--color-day) 45%,transparent)}
+
+.footer{
+  max-width:1200px;margin:0 auto;padding:1.5rem 1.75rem 2.5rem;
+  text-align:center;font-size:0.6875rem;color:var(--color-text-faint);letter-spacing:0.02em;
+}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--color-text-faint);border-radius:var(--radius-full)}
+::-webkit-scrollbar-thumb:hover{background:var(--color-text-muted)}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-left">
+    <svg class="logo" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10.25"/>
+      <ellipse cx="12" cy="12" rx="4.25" ry="10.25"/>
+      <line x1="1.75" y1="12" x2="22.25" y2="12"/>
+    </svg>
+    <div>
+      <h1 class="header-title">WORLDTIME</h1>
+      <p class="header-tagline">Explore &middot; World map</p>
+    </div>
+  </div>
+  <div class="header-controls">
+    <a class="toggle-btn" href="index.html" title="Back to clocks" aria-label="Back to clocks">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      <span class="label">Clocks</span>
+    </a>
+    <button class="toggle-btn" id="btnTheme" aria-label="Toggle theme" title="Toggle theme">
+      <svg class="icon icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41"/></svg>
+      <svg class="icon icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:none"><path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/></svg>
+      <span class="label" id="labelTheme">Light</span>
+    </button>
+  </div>
+</header>
+
+<div class="map-wrap">
+  <div class="map-intro">
+    <h2>World Map</h2>
+    <p>Your selected cities plotted by location. Vertical lines divide the world into UTC-offset regions, each showing the current time on that meridian.</p>
+  </div>
+  <div class="timebar">
+    <div class="timebar-readout">
+      <div class="timebar-readout-top">
+        <span class="timebar-zone">UTC</span>
+        <span class="timebar-time" id="tbTime">--:--</span>
+      </div>
+      <span class="timebar-meta" id="tbMeta"></span>
+    </div>
+    <div class="timebar-day">
+      <button class="day-btn" id="tbPrevDay" aria-label="Previous day" title="Previous day">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <span class="day-label" id="tbDay">--</span>
+      <button class="day-btn" id="tbNextDay" aria-label="Next day" title="Next day">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+    <div class="timebar-slider-wrap">
+      <input type="range" class="timebar-slider" id="tbSlider" min="0" max="1439" step="1" value="0" aria-label="Scrub the time of day (UTC)">
+      <div class="timebar-ticks"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div>
+    </div>
+    <button class="timebar-reset" id="tbReset" hidden>Now</button>
+  </div>
+  <div class="map-frame">
+    <svg class="map-svg" id="mapSvg" viewBox="0 0 720 360" preserveAspectRatio="xMidYMid meet" role="img" aria-label="World map with selected cities and time zone lines"></svg>
+  </div>
+  <div class="legend">
+    <span class="legend-item"><span class="legend-dot"></span>Selected city</span>
+    <span class="legend-item"><span class="legend-dot local"></span>Your local city</span>
+    <span class="legend-item"><span class="legend-line"></span>UTC offset region &amp; current time</span>
+    <span class="legend-item"><span class="legend-swatch prev"></span>Previous day</span>
+    <span class="legend-item"><span class="legend-swatch next"></span>Next day</span>
+  </div>
+</div>
+
+<footer class="footer">
+  <p id="footerNote">Worldtime — Explore.</p>
+</footer>
+
+<script src="worldmap.js"></script>
+<script>
+// Minimal city dataset: key (for alias cities sharing a zone), IANA id (used for
+// time), display name, and geographic lat/lon for plotting. Keys mirror index.html
+// so the selection saved there resolves here.
+const CITIES = [
+  {id:"UTC",city:"UTC",lat:null,lon:null},
+  {id:"America/New_York",city:"New York",lat:40.7,lon:-74.0},
+  {id:"America/Los_Angeles",city:"Los Angeles",lat:34.1,lon:-118.2},
+  {id:"America/Chicago",city:"Chicago",lat:41.9,lon:-87.6},
+  {id:"America/Toronto",city:"Toronto",lat:43.7,lon:-79.4},
+  {id:"America/Vancouver",city:"Vancouver",lat:49.3,lon:-123.1},
+  {id:"America/Sao_Paulo",city:"São Paulo",lat:-23.5,lon:-46.6},
+  {id:"America/Mexico_City",city:"Mexico City",lat:19.4,lon:-99.1},
+  {id:"America/Buenos_Aires",city:"Buenos Aires",lat:-34.6,lon:-58.4},
+  {id:"America/Denver",city:"Denver",lat:39.7,lon:-105.0},
+  {id:"America/Phoenix",city:"Phoenix",lat:33.4,lon:-112.1},
+  {id:"America/Anchorage",city:"Anchorage",lat:61.2,lon:-149.9},
+  {id:"America/Bogota",city:"Bogota",lat:4.7,lon:-74.1},
+  {id:"America/Lima",city:"Lima",lat:-12.0,lon:-77.0},
+  {id:"America/Santiago",city:"Santiago",lat:-33.4,lon:-70.7},
+  {id:"Europe/London",city:"London",lat:51.5,lon:-0.1},
+  {id:"Europe/Paris",city:"Paris",lat:48.9,lon:2.4},
+  {id:"Europe/Berlin",city:"Berlin",lat:52.5,lon:13.4},
+  {id:"Europe/Madrid",city:"Madrid",lat:40.4,lon:-3.7},
+  {id:"Europe/Rome",city:"Rome",lat:41.9,lon:12.5},
+  {id:"Europe/Amsterdam",city:"Amsterdam",lat:52.4,lon:4.9},
+  {id:"Europe/Stockholm",city:"Stockholm",lat:59.3,lon:18.1},
+  {id:"Europe/Moscow",city:"Moscow",lat:55.8,lon:37.6},
+  {id:"Europe/Istanbul",city:"Istanbul",lat:41.0,lon:29.0},
+  {id:"Europe/Dublin",city:"Dublin",lat:53.3,lon:-6.3},
+  {id:"Europe/Lisbon",city:"Lisbon",lat:38.7,lon:-9.1},
+  {id:"Europe/Zurich",city:"Zurich",lat:47.4,lon:8.5},
+  {id:"Europe/Vienna",city:"Vienna",lat:48.2,lon:16.4},
+  {id:"Europe/Athens",city:"Athens",lat:38.0,lon:23.7},
+  {id:"Europe/Warsaw",city:"Warsaw",lat:52.2,lon:21.0},
+  {id:"Europe/Kyiv",city:"Kyiv",lat:50.5,lon:30.5},
+  {id:"Africa/Cairo",city:"Cairo",lat:30.0,lon:31.2},
+  {id:"Africa/Lagos",city:"Lagos",lat:6.5,lon:3.4},
+  {id:"Africa/Johannesburg",city:"Johannesburg",lat:-26.2,lon:28.0},
+  {id:"Africa/Nairobi",city:"Nairobi",lat:-1.3,lon:36.8},
+  {id:"Africa/Accra",city:"Accra",lat:5.6,lon:-0.2},
+  {id:"Asia/Dubai",city:"Dubai",lat:25.2,lon:55.3},
+  {id:"Asia/Kolkata",city:"Mumbai",lat:19.1,lon:72.9},
+  {id:"Asia/Karachi",city:"Karachi",lat:24.9,lon:67.0},
+  {id:"Asia/Dhaka",city:"Dhaka",lat:23.8,lon:90.4},
+  {id:"Asia/Colombo",city:"Colombo",lat:6.9,lon:79.9},
+  {id:"Asia/Kathmandu",city:"Kathmandu",lat:27.7,lon:85.3},
+  {id:"Asia/Bangkok",city:"Bangkok",lat:13.8,lon:100.5},
+  {id:"Asia/Ho_Chi_Minh",city:"Ho Chi Minh City",lat:10.8,lon:106.7},
+  {id:"Asia/Manila",city:"Manila",lat:14.6,lon:121.0},
+  {id:"Asia/Taipei",city:"Taipei",lat:25.0,lon:121.6},
+  {id:"Asia/Singapore",city:"Singapore",lat:1.35,lon:103.8},
+  {id:"Asia/Kuala_Lumpur",city:"Kuala Lumpur",lat:3.1,lon:101.7},
+  {id:"Asia/Hong_Kong",city:"Hong Kong",lat:22.3,lon:114.2},
+  {id:"Asia/Shanghai",city:"Shanghai",lat:31.2,lon:121.5},
+  {id:"Asia/Tokyo",city:"Tokyo",lat:35.7,lon:139.7},
+  {id:"Asia/Seoul",city:"Seoul",lat:37.6,lon:127.0},
+  {id:"Asia/Jakarta",city:"Jakarta",lat:-6.2,lon:106.8},
+  {id:"Asia/Tehran",city:"Tehran",lat:35.7,lon:51.4},
+  {id:"Asia/Riyadh",city:"Riyadh",lat:24.7,lon:46.7},
+  {id:"Asia/Jerusalem",city:"Jerusalem",lat:31.8,lon:35.2},
+  {id:"Australia/Sydney",city:"Sydney",lat:-33.9,lon:151.2},
+  {id:"Australia/Melbourne",city:"Melbourne",lat:-37.8,lon:145.0},
+  {id:"Australia/Perth",city:"Perth",lat:-31.95,lon:115.9},
+  {id:"Australia/Adelaide",city:"Adelaide",lat:-34.9,lon:138.6},
+  {id:"Australia/Brisbane",city:"Brisbane",lat:-27.5,lon:153.0},
+  {id:"Pacific/Auckland",city:"Auckland",lat:-36.85,lon:174.8},
+  {id:"Pacific/Honolulu",city:"Honolulu",lat:21.3,lon:-157.85},
+  {id:"Pacific/Fiji",city:"Suva",lat:-18.1,lon:178.4},
+  {key:"America/New_York|Boston",id:"America/New_York",city:"Boston",lat:42.36,lon:-71.06},
+  {key:"America/New_York|Washington",id:"America/New_York",city:"Washington, D.C.",lat:38.9,lon:-77.0},
+  {key:"America/New_York|Miami",id:"America/New_York",city:"Miami",lat:25.8,lon:-80.2},
+  {key:"America/Los_Angeles|San_Francisco",id:"America/Los_Angeles",city:"San Francisco",lat:37.8,lon:-122.4},
+  {key:"America/Los_Angeles|Seattle",id:"America/Los_Angeles",city:"Seattle",lat:47.6,lon:-122.3},
+  {key:"America/Los_Angeles|Las_Vegas",id:"America/Los_Angeles",city:"Las Vegas",lat:36.2,lon:-115.1},
+  {key:"America/Chicago|Houston",id:"America/Chicago",city:"Houston",lat:29.8,lon:-95.4},
+  {key:"America/Chicago|Dallas",id:"America/Chicago",city:"Dallas",lat:32.8,lon:-96.8},
+  {key:"Asia/Shanghai|Beijing",id:"Asia/Shanghai",city:"Beijing",lat:39.9,lon:116.4},
+  {key:"Europe/Madrid|Barcelona",id:"Europe/Madrid",city:"Barcelona",lat:41.4,lon:2.2},
+  {key:"Europe/Berlin|Munich",id:"Europe/Berlin",city:"Munich",lat:48.1,lon:11.6},
+  {key:"Europe/Berlin|Frankfurt",id:"Europe/Berlin",city:"Frankfurt",lat:50.1,lon:8.7},
+  {key:"Europe/Rome|Milan",id:"Europe/Rome",city:"Milan",lat:45.5,lon:9.2},
+  {id:"America/Edmonton",city:"Calgary",lat:51.05,lon:-114.1},
+  {id:"America/Halifax",city:"Halifax",lat:44.6,lon:-63.6},
+  {id:"America/St_Johns",city:"St. John's",lat:47.6,lon:-52.7},
+  {id:"America/Havana",city:"Havana",lat:23.1,lon:-82.4},
+  {id:"America/Panama",city:"Panama City",lat:9.0,lon:-79.5},
+  {id:"America/Guatemala",city:"Guatemala City",lat:14.6,lon:-90.5},
+  {id:"America/Santo_Domingo",city:"Santo Domingo",lat:18.5,lon:-69.9},
+  {id:"America/Caracas",city:"Caracas",lat:10.5,lon:-66.9},
+  {id:"America/Guayaquil",city:"Quito",lat:-0.2,lon:-78.5},
+  {id:"America/La_Paz",city:"La Paz",lat:-16.5,lon:-68.2},
+  {id:"America/Montevideo",city:"Montevideo",lat:-34.9,lon:-56.2},
+  {id:"Atlantic/Cape_Verde",city:"Praia",lat:14.9,lon:-23.5},
+  {id:"Pacific/Pago_Pago",city:"Pago Pago",lat:-14.3,lon:-170.7},
+  {id:"Pacific/Tahiti",city:"Papeete",lat:-17.5,lon:-149.6},
+  {id:"Europe/Brussels",city:"Brussels",lat:50.8,lon:4.4},
+  {id:"Europe/Copenhagen",city:"Copenhagen",lat:55.7,lon:12.6},
+  {id:"Europe/Oslo",city:"Oslo",lat:59.9,lon:10.8},
+  {id:"Europe/Prague",city:"Prague",lat:50.1,lon:14.4},
+  {id:"Europe/Budapest",city:"Budapest",lat:47.5,lon:19.0},
+  {id:"Europe/Belgrade",city:"Belgrade",lat:44.8,lon:20.5},
+  {id:"Europe/Helsinki",city:"Helsinki",lat:60.2,lon:24.9},
+  {id:"Europe/Bucharest",city:"Bucharest",lat:44.4,lon:26.1},
+  {id:"Europe/Sofia",city:"Sofia",lat:42.7,lon:23.3},
+  {id:"Atlantic/Reykjavik",city:"Reykjavik",lat:64.1,lon:-21.9},
+  {id:"Africa/Casablanca",city:"Casablanca",lat:33.6,lon:-7.6},
+  {id:"Africa/Algiers",city:"Algiers",lat:36.8,lon:3.1},
+  {id:"Africa/Khartoum",city:"Khartoum",lat:15.5,lon:32.5},
+  {id:"Africa/Harare",city:"Harare",lat:-17.8,lon:31.0},
+  {id:"Asia/Baghdad",city:"Baghdad",lat:33.3,lon:44.4},
+  {id:"Asia/Qatar",city:"Doha",lat:25.3,lon:51.5},
+  {id:"Asia/Kuwait",city:"Kuwait City",lat:29.4,lon:48.0},
+  {id:"Asia/Beirut",city:"Beirut",lat:33.9,lon:35.5},
+  {id:"Asia/Baku",city:"Baku",lat:40.4,lon:49.9},
+  {id:"Asia/Tbilisi",city:"Tbilisi",lat:41.7,lon:44.8},
+  {id:"Asia/Yerevan",city:"Yerevan",lat:40.2,lon:44.5},
+  {id:"Asia/Kabul",city:"Kabul",lat:34.5,lon:69.2},
+  {id:"Asia/Tashkent",city:"Tashkent",lat:41.3,lon:69.3},
+  {id:"Asia/Almaty",city:"Almaty",lat:43.3,lon:76.9},
+  {id:"Asia/Yekaterinburg",city:"Yekaterinburg",lat:56.8,lon:60.6},
+  {id:"Asia/Yangon",city:"Yangon",lat:16.8,lon:96.2},
+  {id:"Asia/Novosibirsk",city:"Novosibirsk",lat:55.0,lon:82.9},
+  {id:"Asia/Makassar",city:"Denpasar",lat:-8.7,lon:115.2},
+  {id:"Asia/Ulaanbaatar",city:"Ulaanbaatar",lat:47.9,lon:106.9},
+  {id:"Asia/Vladivostok",city:"Vladivostok",lat:43.1,lon:131.9},
+  {id:"Australia/Darwin",city:"Darwin",lat:-12.5,lon:130.8},
+  {id:"Pacific/Guam",city:"Hagåtña",lat:13.5,lon:144.8},
+  {id:"Pacific/Port_Moresby",city:"Port Moresby",lat:-9.5,lon:147.2},
+  {id:"Pacific/Noumea",city:"Nouméa",lat:-22.3,lon:166.5},
+  {id:"Pacific/Tongatapu",city:"Nuku'alofa",lat:-21.1,lon:-175.2},
+  {id:"Pacific/Apia",city:"Apia",lat:-13.8,lon:-171.8},
+  {key:"America/Toronto|Montreal",id:"America/Toronto",city:"Montreal",lat:45.5,lon:-73.6},
+  {key:"America/Toronto|Ottawa",id:"America/Toronto",city:"Ottawa",lat:45.4,lon:-75.7},
+  {key:"America/New_York|Atlanta",id:"America/New_York",city:"Atlanta",lat:33.7,lon:-84.4},
+  {key:"America/New_York|Philadelphia",id:"America/New_York",city:"Philadelphia",lat:39.95,lon:-75.2},
+  {key:"America/Sao_Paulo|Rio_de_Janeiro",id:"America/Sao_Paulo",city:"Rio de Janeiro",lat:-22.9,lon:-43.2},
+  {key:"America/Sao_Paulo|Brasilia",id:"America/Sao_Paulo",city:"Brasília",lat:-15.8,lon:-47.9},
+  {key:"Europe/Zurich|Geneva",id:"Europe/Zurich",city:"Geneva",lat:46.2,lon:6.1},
+  {key:"Europe/Moscow|Saint_Petersburg",id:"Europe/Moscow",city:"Saint Petersburg",lat:59.9,lon:30.3},
+  {key:"Africa/Nairobi|Addis_Ababa",id:"Africa/Nairobi",city:"Addis Ababa",lat:9.0,lon:38.7},
+  {key:"Africa/Lagos|Kinshasa",id:"Africa/Lagos",city:"Kinshasa",lat:-4.3,lon:15.3},
+  {key:"Asia/Dubai|Abu_Dhabi",id:"Asia/Dubai",city:"Abu Dhabi",lat:24.5,lon:54.4},
+  {key:"Asia/Jerusalem|Tel_Aviv",id:"Asia/Jerusalem",city:"Tel Aviv",lat:32.1,lon:34.8},
+  {key:"Asia/Kolkata|New_Delhi",id:"Asia/Kolkata",city:"New Delhi",lat:28.6,lon:77.2},
+  {key:"Asia/Kolkata|Bengaluru",id:"Asia/Kolkata",city:"Bengaluru",lat:13.0,lon:77.6},
+  {key:"Asia/Karachi|Islamabad",id:"Asia/Karachi",city:"Islamabad",lat:33.7,lon:73.0},
+  {key:"Asia/Ho_Chi_Minh|Hanoi",id:"Asia/Ho_Chi_Minh",city:"Hanoi",lat:21.0,lon:105.8},
+  {key:"Asia/Shanghai|Guangzhou",id:"Asia/Shanghai",city:"Guangzhou",lat:23.1,lon:113.3},
+  {key:"Asia/Shanghai|Shenzhen",id:"Asia/Shanghai",city:"Shenzhen",lat:22.5,lon:114.1},
+  {key:"Asia/Tokyo|Osaka",id:"Asia/Tokyo",city:"Osaka",lat:34.7,lon:135.5},
+  {key:"Australia/Sydney|Canberra",id:"Australia/Sydney",city:"Canberra",lat:-35.3,lon:149.1},
+  {key:"Pacific/Auckland|Wellington",id:"Pacific/Auckland",city:"Wellington",lat:-41.3,lon:174.8},
+];
+CITIES.forEach(d => { if (!d.key) d.key = d.id; });
+
+const DEFAULT_TIMEZONES = [
+  "UTC","America/New_York","Europe/London","Europe/Paris",
+  "Asia/Dubai","Asia/Kolkata","Asia/Singapore","Asia/Tokyo",
+  "Australia/Sydney","America/Los_Angeles","America/Sao_Paulo","America/Toronto"
+];
+
+const STORAGE_KEY = 'worldtime:v1';
+
+function canonicalTz(tz) {
+  try { return Intl.DateTimeFormat('en-US', { timeZone: tz }).resolvedOptions().timeZone; }
+  catch { return tz; }
+}
+
+const LOCAL_TZ = (() => {
+  let raw;
+  try { raw = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'; }
+  catch { return 'UTC'; }
+  const canon = canonicalTz(raw);
+  const match = CITIES.find(d => canonicalTz(d.id) === canon);
+  return match ? match.id : raw;
+})();
+
+if (!CITIES.some(d => d.id === LOCAL_TZ)) {
+  const parts = LOCAL_TZ.split('/');
+  CITIES.push({ id: LOCAL_TZ, key: LOCAL_TZ, city: parts[parts.length - 1].replace(/_/g, ' '), lat: null, lon: null });
+}
+
+function byKey(key) {
+  return CITIES.find(d => d.key === key) || CITIES.find(d => d.id === key);
+}
+
+function readSaved() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); }
+  catch { return null; }
+}
+
+const saved = readSaved();
+let is24h = saved && typeof saved.is24h === 'boolean' ? saved.is24h : true;
+let isDark = saved && typeof saved.isDark === 'boolean' ? saved.isDark : true;
+const selectedKeys = (saved && Array.isArray(saved.timezones) && saved.timezones.length)
+  ? saved.timezones
+  : [LOCAL_TZ, ...DEFAULT_TIMEZONES.filter(tz => tz !== LOCAL_TZ)];
+const selectedCities = selectedKeys.map(byKey).filter(Boolean);
+
+function formatTime(hour, minute, second, use24h, showSeconds = true) {
+  const pad = (n) => String(n).padStart(2, '0');
+  const secs = showSeconds ? ':' + pad(second) : '';
+  if (use24h) return pad(hour) + ':' + pad(minute) + secs;
+  const h12 = hour % 12 || 12;
+  return pad(h12) + ':' + pad(minute) + secs + ' ' + (hour < 12 ? 'AM' : 'PM');
+}
+
+// DST-correct local time for a zone at a given instant (defaults to now).
+function getCurrentTime(tzId, when) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: tzId, hour: 'numeric', minute: '2-digit', hour12: false,
+  }).formatToParts(when || new Date());
+  const get = (t) => parts.find(p => p.type === t)?.value || '0';
+  return { hour: parseInt(get('hour'), 10) % 24, minute: parseInt(get('minute'), 10) };
+}
+
+// Map projection (equirectangular): lon/lat -> SVG coords on a 720x360 canvas.
+const MAP_W = 720, MAP_H = 360;
+const projX = (lon) => (lon + 180) / 360 * MAP_W;
+const projY = (lat) => (90 - lat) / 180 * MAP_H;
+
+function landPathData() {
+  let d = '';
+  for (const ring of WORLD_LAND) {
+    d += 'M' + ring.map(p => projX(p[0]).toFixed(1) + ' ' + projY(p[1]).toFixed(1)).join('L') + 'Z';
+  }
+  return d;
+}
+
+const BAND_NS = [];
+for (let n = -11; n <= 12; n++) BAND_NS.push(n);
+
+const offLabel = (n) => n === 0 ? 'UTC' : (n > 0 ? '+' + n : String(n));
+const bandId = (n) => 'bt' + (n < 0 ? 'm' + (-n) : n);
+const cityId = (key) => 'ct' + key.replace(/[^a-zA-Z0-9]+/g, '_');
+
+// Nominal time on a meridian whose offset is n hours from UTC, at instant `base`.
+function bandTime(n, base) {
+  const d = new Date(base.getTime() + n * 3600000);
+  return formatTime(d.getUTCHours(), d.getUTCMinutes(), 0, is24h, false);
+}
+
+// Calendar-day offset (−1/0/+1) of a band's local time vs the displayed UTC day.
+function bandDayOffset(n, base) {
+  const total = base.getUTCHours() * 60 + base.getUTCMinutes() + n * 60;
+  return Math.floor(total / 1440);
+}
+
+function esc(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function buildMap() {
+  const parts = [];
+  parts.push(`<rect class="ocean" x="0" y="0" width="${MAP_W}" height="${MAP_H}"/>`);
+  parts.push(`<path class="land" d="${landPathData()}"/>`);
+
+  // Per-band day-shift overlays: a vertical strip spanning each 15°-wide UTC
+  // region. Tint is applied dynamically by updateTimes when that region's date
+  // differs from the day currently shown.
+  BAND_NS.forEach(n => {
+    const left = Math.max(0, projX(15 * n - 7.5));
+    const right = Math.min(MAP_W, projX(15 * n + 7.5));
+    parts.push(`<rect class="band-region" id="${bandId(n)}_bg" x="${left.toFixed(1)}" y="0" width="${(right - left).toFixed(1)}" height="${MAP_H}"/>`);
+  });
+
+  // Vertical timezone meridian lines + offset labels (time filled by updateTimes).
+  BAND_NS.forEach(n => {
+    const x = projX(15 * n).toFixed(1);
+    const cls = n === 0 ? 'meridian meridian-0' : 'meridian';
+    parts.push(`<line class="${cls}" x1="${x}" y1="0" x2="${x}" y2="${MAP_H}"/>`);
+    parts.push(`<text class="band-off" x="${x}" y="11" text-anchor="middle">${offLabel(n)}</text>`);
+    parts.push(`<text class="band-time" id="${bandId(n)}" x="${x}" y="20" text-anchor="middle"></text>`);
+    parts.push(`<text class="band-day" id="${bandId(n)}_d" x="${x}" y="28" text-anchor="middle"></text>`);
+  });
+
+  // City dots + labels. Each label is a two-line block (name over time) placed to
+  // one side of its dot. Because several selected cities can sit very close
+  // together (New York/Toronto, London/Paris, Tokyo/Osaka…), we run a small
+  // de-collision pass that nudges overlapping label blocks apart vertically and
+  // draws a thin leader line back to the dot whenever a label is displaced.
+  const GAP = 5;          // px between dot and its label
+  const LABEL_H = 17;     // vertical footprint of a two-line label block (name+time, measured ~16.3px)
+  const CHAR_W = 3.9;     // approx px per character at our label font sizes
+  const timeChars = is24h ? 5 : 8; // "HH:MM" vs "HH:MM AM"
+
+  const items = [];
+  selectedCities.forEach(c => {
+    if (c.lat == null || c.lon == null) return;
+    const cx = projX(c.lon), cy = projY(c.lat);
+    const toRight = cx < MAP_W - 96;
+    const w = Math.max(c.city.length, timeChars) * CHAR_W;
+    items.push({ c, cx, cy, toRight, w, ly: cy, isLocal: c.key === LOCAL_TZ });
+  });
+
+  // Vertical overlap (in px) between two label boxes that also overlap in x.
+  function vOverlap(a, b) {
+    const ax1 = a.toRight ? a.cx + GAP : a.cx - GAP - a.w;
+    const ax2 = a.toRight ? a.cx + GAP + a.w : a.cx - GAP;
+    const bx1 = b.toRight ? b.cx + GAP : b.cx - GAP - b.w;
+    const bx2 = b.toRight ? b.cx + GAP + b.w : b.cx - GAP;
+    if (ax2 < bx1 || bx2 < ax1) return 0;
+    const ov = Math.min(a.ly, b.ly) + LABEL_H / 2 - (Math.max(a.ly, b.ly) - LABEL_H / 2);
+    return ov > 0 ? ov : 0;
+  }
+
+  for (let iter = 0; iter < 80; iter++) {
+    let moved = false;
+    for (let i = 0; i < items.length; i++) {
+      for (let j = i + 1; j < items.length; j++) {
+        const a = items[i], b = items[j];
+        const ov = vOverlap(a, b);
+        if (ov > 0.1) {
+          const shift = ov / 2 + 0.1;
+          if (a.ly <= b.ly) { a.ly -= shift; b.ly += shift; }
+          else { a.ly += shift; b.ly -= shift; }
+          moved = true;
+        }
+      }
+    }
+    items.forEach(it => {
+      it.ly = Math.max(LABEL_H / 2 + 1, Math.min(MAP_H - LABEL_H / 2 - 1, it.ly));
+    });
+    if (!moved) break;
+  }
+
+  // Leaders first (so they sit beneath dots/labels), then dots, then text.
+  items.forEach(it => {
+    if (Math.abs(it.ly - it.cy) > 2.5) {
+      const ax = (it.toRight ? it.cx + GAP - 1 : it.cx - GAP + 1).toFixed(1);
+      parts.push(`<line class="leader" x1="${it.cx.toFixed(1)}" y1="${it.cy.toFixed(1)}" x2="${ax}" y2="${it.ly.toFixed(1)}"/>`);
+    }
+  });
+  items.forEach(it => {
+    if (it.isLocal) parts.push(`<circle class="dot-ring" cx="${it.cx.toFixed(1)}" cy="${it.cy.toFixed(1)}" r="6"/>`);
+    parts.push(`<circle class="${it.isLocal ? 'dot dot-local' : 'dot'}" cx="${it.cx.toFixed(1)}" cy="${it.cy.toFixed(1)}" r="${it.isLocal ? 4 : 3}"/>`);
+  });
+  items.forEach(it => {
+    const anchor = it.toRight ? 'start' : 'end';
+    const lx = (it.toRight ? it.cx + GAP : it.cx - GAP).toFixed(1);
+    parts.push(`<text class="city-name" x="${lx}" y="${(it.ly - 1.5).toFixed(1)}" text-anchor="${anchor}">${esc(it.c.city)}</text>`);
+    parts.push(`<text class="city-time" id="${cityId(it.c.key)}" x="${lx}" y="${(it.ly + 6.5).toFixed(1)}" text-anchor="${anchor}"></text>`);
+  });
+
+  document.getElementById('mapSvg').innerHTML = parts.join('');
+}
+
+// ── Time travel: a global offset (minutes) scrubbed via the top time bar. ──
+// Every band time, city time and the readout derive from this single adjusted
+// instant, so dragging the bar moves the whole map through time together.
+let offsetMinutes = 0;
+let scrubbing = false;
+let lastSliderVal = null;
+let timer = null;
+
+const localCityName = (byKey(LOCAL_TZ) || {}).city || 'Local';
+
+function adjNow() { return new Date(Date.now() + offsetMinutes * 60000); }
+function utcMinuteOfDay(d) { return d.getUTCHours() * 60 + d.getUTCMinutes(); }
+
+function travelLabel(min) {
+  const sign = min > 0 ? '+' : '-';
+  let total = Math.abs(min);
+  const days = Math.floor(total / 1440); total %= 1440;
+  const h = Math.floor(total / 60), m = total % 60;
+  const segs = [];
+  if (days) segs.push(days + 'd');
+  if (h) segs.push(h + 'h');
+  if (m || !segs.length) segs.push(m + 'm');
+  return sign + segs.join(' ');
+}
+
+function setSliderTrack(slider, value) {
+  const pct = (value / 1439) * 100;
+  slider.style.background =
+    `linear-gradient(to right, var(--color-primary) 0%, var(--color-primary) ${pct}%, var(--color-surface-offset) ${pct}%, var(--color-surface-offset) 100%)`;
+}
+
+// Whole-day difference (UTC) between the displayed instant and the real today.
+function dayShift(now) {
+  const real = new Date();
+  const a = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  const b = Date.UTC(real.getUTCFullYear(), real.getUTCMonth(), real.getUTCDate());
+  return Math.round((a - b) / 86400000);
+}
+
+function updateReadout(now) {
+  const tEl = document.getElementById('tbTime');
+  if (tEl) tEl.textContent = formatTime(now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds(), is24h, true);
+
+  const shift = dayShift(now);
+  const dEl = document.getElementById('tbDay');
+  if (dEl) {
+    dEl.textContent = now.toLocaleDateString('en-US', { timeZone: 'UTC', weekday: 'short', month: 'short', day: 'numeric' });
+    dEl.classList.toggle('shifted', shift !== 0);
+    dEl.title = shift === 0 ? 'Today (UTC)'
+      : shift === 1 ? 'Tomorrow (UTC)'
+      : shift === -1 ? 'Yesterday (UTC)'
+      : (shift > 0 ? '+' : '') + shift + ' days (UTC)';
+  }
+
+  const mEl = document.getElementById('tbMeta');
+  if (mEl) {
+    const loc = getCurrentTime(LOCAL_TZ, now);
+    let meta = localCityName + ' ' + formatTime(loc.hour, loc.minute, 0, is24h, false);
+    if (offsetMinutes !== 0) meta += ' · ' + travelLabel(offsetMinutes);
+    mEl.textContent = meta;
+  }
+  const reset = document.getElementById('tbReset');
+  if (reset) reset.hidden = offsetMinutes === 0;
+}
+
+function updateTimes() {
+  const now = adjNow();
+  BAND_NS.forEach(n => {
+    const el = document.getElementById(bandId(n));
+    if (el) el.textContent = bandTime(n, now);
+    const off = bandDayOffset(n, now);
+    const mod = off < 0 ? ' prev' : off > 0 ? ' next' : '';
+    const bg = document.getElementById(bandId(n) + '_bg');
+    if (bg) bg.setAttribute('class', 'band-region' + mod);
+    const dEl = document.getElementById(bandId(n) + '_d');
+    if (dEl) {
+      dEl.textContent = off === 0 ? '' : (off > 0 ? '+1d' : '−1d');
+      dEl.setAttribute('class', 'band-day' + mod);
+    }
+  });
+  selectedCities.forEach(c => {
+    if (c.lat == null || c.lon == null) return;
+    const el = document.getElementById(cityId(c.key));
+    if (el) {
+      const t = getCurrentTime(c.id, now);
+      el.textContent = formatTime(t.hour, t.minute, 0, is24h, false);
+    }
+  });
+  updateReadout(now);
+  // While not actively scrubbing, the slider tracks live UTC time of day.
+  if (!scrubbing) {
+    const slider = document.getElementById('tbSlider');
+    if (slider) {
+      const v = utcMinuteOfDay(now);
+      slider.value = v;
+      lastSliderVal = v;
+      setSliderTrack(slider, v);
+    }
+  }
+}
+
+function startTimer() { stopTimer(); updateTimes(); timer = setInterval(updateTimes, 1000); }
+function stopTimer() { if (timer) { clearInterval(timer); timer = null; } }
+
+// Dragging the bar accumulates a signed delta into offsetMinutes, wrapping at the
+// day boundary so scrubbing past midnight moves forward/back a day naturally.
+function onScrub(e) {
+  const slider = e.target;
+  const v = parseInt(slider.value, 10);
+  if (lastSliderVal == null) lastSliderVal = v;
+  let delta = v - lastSliderVal;
+  if (delta > 720) delta -= 1440;
+  if (delta < -720) delta += 1440;
+  offsetMinutes += delta;
+  lastSliderVal = v;
+  if (!scrubbing) { scrubbing = true; stopTimer(); }
+  setSliderTrack(slider, v);
+  updateTimes();
+}
+
+function endScrub() { if (scrubbing) { scrubbing = false; startTimer(); } }
+
+function resetNow() {
+  offsetMinutes = 0;
+  lastSliderVal = null;
+  scrubbing = false;
+  startTimer();
+}
+
+// Jump the whole map a full day back/forward, keeping the same time of day.
+function stepDay(delta) {
+  offsetMinutes += delta * 1440;
+  updateTimes();
+}
+
+function applyTheme() {
+  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  const sun = document.querySelector('.icon-sun');
+  const moon = document.querySelector('.icon-moon');
+  const label = document.getElementById('labelTheme');
+  if (isDark) { sun.style.display = ''; moon.style.display = 'none'; label.textContent = 'Light'; }
+  else { sun.style.display = 'none'; moon.style.display = ''; label.textContent = 'Dark'; }
+}
+
+function persistTheme() {
+  const cur = readSaved() || {};
+  cur.isDark = isDark;
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(cur)); } catch {}
+}
+
+function toggleTheme() {
+  isDark = !isDark;
+  applyTheme();
+  persistTheme();
+}
+
+function init() {
+  applyTheme();
+  document.getElementById('btnTheme').addEventListener('click', toggleTheme);
+  buildMap();
+
+  const slider = document.getElementById('tbSlider');
+  slider.addEventListener('input', onScrub);
+  slider.addEventListener('change', endScrub);
+  document.getElementById('tbReset').addEventListener('click', resetNow);
+  document.getElementById('tbPrevDay').addEventListener('click', () => stepDay(-1));
+  document.getElementById('tbNextDay').addEventListener('click', () => stepDay(1));
+  document.addEventListener('mouseup', endScrub);
+  document.addEventListener('touchend', endScrub);
+
+  startTimer();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

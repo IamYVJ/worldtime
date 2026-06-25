@@ -415,6 +415,10 @@ a{color:var(--color-primary);text-decoration:none}
     </div>
   </div>
   <div class="header-controls">
+    <a class="toggle-btn" id="btnExplore" href="explore.html" aria-label="Open Explore world map" title="Explore world map">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><polygon points="16 8 13.5 13.5 8 16 10.5 10.5 16 8"/></svg>
+      <span class="label">Explore</span>
+    </a>
     <button class="toggle-btn" id="btn24h" aria-label="Toggle 12/24 hour format" title="Toggle 12/24h">
       <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
       <span class="label" id="label24h">24H</span>
@@ -695,6 +699,52 @@ const state = {
   isDragging: false,
   sliderValues: {},
 };
+
+// Shared with explore.html via this localStorage key. We persist only the
+// user-facing preferences and selection — never the transient time-travel offset.
+const STORAGE_KEY = 'worldtime:v1';
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      timezones: state.timezones,
+      is24h: state.is24h,
+      isDark: state.isDark,
+      showSeconds: state.showSeconds,
+    }));
+  } catch (e) { /* storage unavailable (private mode, etc.) — non-fatal */ }
+}
+
+function loadState() {
+  let saved;
+  try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); }
+  catch (e) { saved = null; }
+  if (!saved || typeof saved !== 'object') return;
+  if (Array.isArray(saved.timezones) && saved.timezones.length) {
+    // Drop any keys no longer in the catalog, then guarantee the local zone is
+    // present and pinned first (matching the default-state convention).
+    const known = saved.timezones.filter(k => dataByKey(k));
+    state.timezones = [LOCAL_TZ, ...known.filter(k => k !== LOCAL_TZ)];
+  }
+  if (typeof saved.is24h === 'boolean') state.is24h = saved.is24h;
+  if (typeof saved.isDark === 'boolean') state.isDark = saved.isDark;
+  if (typeof saved.showSeconds === 'boolean') state.showSeconds = saved.showSeconds;
+}
+
+// Reflect the current preference state onto the header controls and theme. Used
+// once on init after loading saved preferences so the UI matches restored state.
+function syncControls() {
+  document.getElementById('label24h').textContent = state.is24h ? '24H' : '12H';
+  const btnSeconds = document.getElementById('btnSeconds');
+  btnSeconds.classList.toggle('active', state.showSeconds);
+  btnSeconds.setAttribute('aria-pressed', String(state.showSeconds));
+  document.documentElement.setAttribute('data-theme', state.isDark ? 'dark' : 'light');
+  const sunIcon = document.querySelector('.icon-sun');
+  const moonIcon = document.querySelector('.icon-moon');
+  const label = document.getElementById('labelTheme');
+  if (state.isDark) { sunIcon.style.display = ''; moonIcon.style.display = 'none'; label.textContent = 'Light'; }
+  else { sunIcon.style.display = 'none'; moonIcon.style.display = ''; label.textContent = 'Dark'; }
+}
 
 function getCurrentTime(tzId, when) {
   const instant = when || new Date();
@@ -1147,6 +1197,7 @@ function addTimezone(key) {
     const t = getCurrentTime(data.id);
     state.sliderValues[key] = t.hour * 60 + t.minute;
     render();
+    saveState();
   }
   document.getElementById('addSearch').value = '';
   renderAddList('');
@@ -1156,6 +1207,7 @@ function removeTimezone(key) {
   state.timezones = state.timezones.filter(k => k !== key);
   delete state.sliderValues[key];
   render();
+  saveState();
 }
 
 function toggleTheme() {
@@ -1173,12 +1225,14 @@ function toggleTheme() {
     moonIcon.style.display = '';
     label.textContent = 'Dark';
   }
+  saveState();
 }
 
 function toggle24h() {
   state.is24h = !state.is24h;
   document.getElementById('label24h').textContent = state.is24h ? '24H' : '12H';
   render();
+  saveState();
 }
 
 function toggleSeconds() {
@@ -1187,6 +1241,7 @@ function toggleSeconds() {
   btn.classList.toggle('active', state.showSeconds);
   btn.setAttribute('aria-pressed', String(state.showSeconds));
   render();
+  saveState();
 }
 
 function renderAddList(query) {
@@ -1224,6 +1279,9 @@ function renderAddList(query) {
 }
 
 function init() {
+  loadState();
+  syncControls();
+
   const btn24h = document.getElementById('btn24h');
   const btnSeconds = document.getElementById('btnSeconds');
   const btnTheme = document.getElementById('btnTheme');
@@ -1244,6 +1302,8 @@ function init() {
   renderAddList('');
   render();
   startClock();
+  // Seed storage on first load so explore.html always has a selection to read.
+  saveState();
 }
 
 document.addEventListener('DOMContentLoaded', init);
