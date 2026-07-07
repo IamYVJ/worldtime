@@ -480,213 +480,13 @@ a{color:var(--color-primary);text-decoration:none}
   <p id="footerNote">Worldtime &mdash; Drag sliders to travel through time.</p>
 </footer>
 
+<script src="worldtime-data.js"></script>
 <script>
-const TIMEZONE_DATA = [
-  {id:"UTC",city:"UTC",country:"Coordinated Universal Time",abbr:"UTC"},
-  {id:"America/New_York",city:"New York",country:"United States",abbr:"EST",dst:"EDT"},
-  {id:"America/Los_Angeles",city:"Los Angeles",country:"United States",abbr:"PST",dst:"PDT"},
-  {id:"America/Chicago",city:"Chicago",country:"United States",abbr:"CST",dst:"CDT"},
-  {id:"America/Toronto",city:"Toronto",country:"Canada",abbr:"EST",dst:"EDT"},
-  {id:"America/Vancouver",city:"Vancouver",country:"Canada",abbr:"PST",dst:"PDT"},
-  {id:"America/Sao_Paulo",city:"S\u00e3o Paulo",country:"Brazil",abbr:"BRT"},
-  {id:"America/Mexico_City",city:"Mexico City",country:"Mexico",abbr:"CST"},
-  {id:"America/Buenos_Aires",city:"Buenos Aires",country:"Argentina",abbr:"ART"},
-  {id:"America/Denver",city:"Denver",country:"United States",abbr:"MST",dst:"MDT"},
-  {id:"America/Phoenix",city:"Phoenix",country:"United States",abbr:"MST"},
-  {id:"America/Anchorage",city:"Anchorage",country:"United States",abbr:"AKST",dst:"AKDT"},
-  {id:"America/Bogota",city:"Bogota",country:"Colombia",abbr:"COT"},
-  {id:"America/Lima",city:"Lima",country:"Peru",abbr:"PET"},
-  {id:"America/Santiago",city:"Santiago",country:"Chile",abbr:"CLT",dst:"CLST"},
-  {id:"Europe/London",city:"London",country:"United Kingdom",abbr:"GMT",dst:"BST"},
-  {id:"Europe/Paris",city:"Paris",country:"France",abbr:"CET",dst:"CEST"},
-  {id:"Europe/Berlin",city:"Berlin",country:"Germany",abbr:"CET",dst:"CEST"},
-  {id:"Europe/Madrid",city:"Madrid",country:"Spain",abbr:"CET",dst:"CEST"},
-  {id:"Europe/Rome",city:"Rome",country:"Italy",abbr:"CET",dst:"CEST"},
-  {id:"Europe/Amsterdam",city:"Amsterdam",country:"Netherlands",abbr:"CET",dst:"CEST"},
-  {id:"Europe/Stockholm",city:"Stockholm",country:"Sweden",abbr:"CET",dst:"CEST"},
-  {id:"Europe/Moscow",city:"Moscow",country:"Russia",abbr:"MSK"},
-  {id:"Europe/Istanbul",city:"Istanbul",country:"Turkey",abbr:"TRT"},
-  {id:"Europe/Dublin",city:"Dublin",country:"Ireland",abbr:"GMT",dst:"IST"},
-  {id:"Europe/Lisbon",city:"Lisbon",country:"Portugal",abbr:"WET",dst:"WEST"},
-  {id:"Europe/Zurich",city:"Zurich",country:"Switzerland",abbr:"CET",dst:"CEST"},
-  {id:"Europe/Vienna",city:"Vienna",country:"Austria",abbr:"CET",dst:"CEST"},
-  {id:"Europe/Athens",city:"Athens",country:"Greece",abbr:"EET",dst:"EEST"},
-  {id:"Europe/Warsaw",city:"Warsaw",country:"Poland",abbr:"CET",dst:"CEST"},
-  {id:"Europe/Kyiv",city:"Kyiv",country:"Ukraine",abbr:"EET",dst:"EEST"},
-  {id:"Africa/Cairo",city:"Cairo",country:"Egypt",abbr:"EET",dst:"EEST"},
-  {id:"Africa/Lagos",city:"Lagos",country:"Nigeria",abbr:"WAT"},
-  {id:"Africa/Johannesburg",city:"Johannesburg",country:"South Africa",abbr:"SAST"},
-  {id:"Africa/Nairobi",city:"Nairobi",country:"Kenya",abbr:"EAT"},
-  {id:"Africa/Accra",city:"Accra",country:"Ghana",abbr:"GMT"},
-  {id:"Asia/Dubai",city:"Dubai",country:"UAE",abbr:"GST"},
-  {id:"Asia/Kolkata",city:"Mumbai",country:"India",abbr:"IST"},
-  {id:"Asia/Karachi",city:"Karachi",country:"Pakistan",abbr:"PKT"},
-  {id:"Asia/Dhaka",city:"Dhaka",country:"Bangladesh",abbr:"BST"},
-  {id:"Asia/Colombo",city:"Colombo",country:"Sri Lanka",abbr:"IST"},
-  {id:"Asia/Kathmandu",city:"Kathmandu",country:"Nepal",abbr:"NPT"},
-  {id:"Asia/Bangkok",city:"Bangkok",country:"Thailand",abbr:"ICT"},
-  {id:"Asia/Ho_Chi_Minh",city:"Ho Chi Minh City",country:"Vietnam",abbr:"ICT"},
-  {id:"Asia/Manila",city:"Manila",country:"Philippines",abbr:"PHT"},
-  {id:"Asia/Taipei",city:"Taipei",country:"Taiwan",abbr:"CST"},
-  {id:"Asia/Singapore",city:"Singapore",country:"Singapore",abbr:"SGT"},
-  {id:"Asia/Kuala_Lumpur",city:"Kuala Lumpur",country:"Malaysia",abbr:"MYT"},
-  {id:"Asia/Hong_Kong",city:"Hong Kong",country:"Hong Kong",abbr:"HKT"},
-  {id:"Asia/Shanghai",city:"Shanghai",country:"China",abbr:"CST"},
-  {id:"Asia/Tokyo",city:"Tokyo",country:"Japan",abbr:"JST"},
-  {id:"Asia/Seoul",city:"Seoul",country:"South Korea",abbr:"KST"},
-  {id:"Asia/Jakarta",city:"Jakarta",country:"Indonesia",abbr:"WIB"},
-  {id:"Asia/Tehran",city:"Tehran",country:"Iran",abbr:"IRST"},
-  {id:"Asia/Riyadh",city:"Riyadh",country:"Saudi Arabia",abbr:"AST"},
-  {id:"Asia/Jerusalem",city:"Jerusalem",country:"Israel",abbr:"IST",dst:"IDT"},
-  {id:"Australia/Sydney",city:"Sydney",country:"Australia",abbr:"AEST",dst:"AEDT"},
-  {id:"Australia/Melbourne",city:"Melbourne",country:"Australia",abbr:"AEST",dst:"AEDT"},
-  {id:"Australia/Perth",city:"Perth",country:"Australia",abbr:"AWST"},
-  {id:"Australia/Adelaide",city:"Adelaide",country:"Australia",abbr:"ACST",dst:"ACDT"},
-  {id:"Australia/Brisbane",city:"Brisbane",country:"Australia",abbr:"AEST"},
-  {id:"Pacific/Auckland",city:"Auckland",country:"New Zealand",abbr:"NZST",dst:"NZDT"},
-  {id:"Pacific/Honolulu",city:"Honolulu",country:"United States",abbr:"HST"},
-  {id:"Pacific/Fiji",city:"Suva",country:"Fiji",abbr:"FJT"},
-  // Cities that share an IANA zone with an entry above. They carry an explicit
-  // `key` so each gets its own card even though the underlying zone is identical.
-  {key:"America/New_York|Boston",id:"America/New_York",city:"Boston",country:"United States",abbr:"EST",dst:"EDT"},
-  {key:"America/New_York|Washington",id:"America/New_York",city:"Washington, D.C.",country:"United States",abbr:"EST",dst:"EDT"},
-  {key:"America/New_York|Miami",id:"America/New_York",city:"Miami",country:"United States",abbr:"EST",dst:"EDT"},
-  {key:"America/Los_Angeles|San_Francisco",id:"America/Los_Angeles",city:"San Francisco",country:"United States",abbr:"PST",dst:"PDT"},
-  {key:"America/Los_Angeles|Seattle",id:"America/Los_Angeles",city:"Seattle",country:"United States",abbr:"PST",dst:"PDT"},
-  {key:"America/Los_Angeles|Las_Vegas",id:"America/Los_Angeles",city:"Las Vegas",country:"United States",abbr:"PST",dst:"PDT"},
-  {key:"America/Chicago|Houston",id:"America/Chicago",city:"Houston",country:"United States",abbr:"CST",dst:"CDT"},
-  {key:"America/Chicago|Dallas",id:"America/Chicago",city:"Dallas",country:"United States",abbr:"CST",dst:"CDT"},
-  {key:"Asia/Shanghai|Beijing",id:"Asia/Shanghai",city:"Beijing",country:"China",abbr:"CST"},
-  {key:"Europe/Madrid|Barcelona",id:"Europe/Madrid",city:"Barcelona",country:"Spain",abbr:"CET",dst:"CEST"},
-  {key:"Europe/Berlin|Munich",id:"Europe/Berlin",city:"Munich",country:"Germany",abbr:"CET",dst:"CEST"},
-  {key:"Europe/Berlin|Frankfurt",id:"Europe/Berlin",city:"Frankfurt",country:"Germany",abbr:"CET",dst:"CEST"},
-  {key:"Europe/Rome|Milan",id:"Europe/Rome",city:"Milan",country:"Italy",abbr:"CET",dst:"CEST"},
-
-  // ── Additional major cities & capitals in distinct IANA zones ──
-  // Americas
-  {id:"America/Edmonton",city:"Calgary",country:"Canada",abbr:"MST",dst:"MDT"},
-  {id:"America/Halifax",city:"Halifax",country:"Canada",abbr:"AST",dst:"ADT"},
-  {id:"America/St_Johns",city:"St. John's",country:"Canada",abbr:"NST",dst:"NDT"},
-  {id:"America/Havana",city:"Havana",country:"Cuba",abbr:"CST",dst:"CDT"},
-  {id:"America/Panama",city:"Panama City",country:"Panama",abbr:"EST"},
-  {id:"America/Guatemala",city:"Guatemala City",country:"Guatemala",abbr:"CST"},
-  {id:"America/Santo_Domingo",city:"Santo Domingo",country:"Dominican Republic",abbr:"AST"},
-  {id:"America/Caracas",city:"Caracas",country:"Venezuela",abbr:"VET"},
-  {id:"America/Guayaquil",city:"Quito",country:"Ecuador",abbr:"ECT"},
-  {id:"America/La_Paz",city:"La Paz",country:"Bolivia",abbr:"BOT"},
-  {id:"America/Montevideo",city:"Montevideo",country:"Uruguay",abbr:"UYT"},
-  {id:"Atlantic/Cape_Verde",city:"Praia",country:"Cape Verde",abbr:"CVT"},
-  {id:"Pacific/Pago_Pago",city:"Pago Pago",country:"American Samoa",abbr:"SST"},
-  {id:"Pacific/Tahiti",city:"Papeete",country:"French Polynesia",abbr:"TAHT"},
-  // Europe
-  {id:"Europe/Brussels",city:"Brussels",country:"Belgium",abbr:"CET",dst:"CEST"},
-  {id:"Europe/Copenhagen",city:"Copenhagen",country:"Denmark",abbr:"CET",dst:"CEST"},
-  {id:"Europe/Oslo",city:"Oslo",country:"Norway",abbr:"CET",dst:"CEST"},
-  {id:"Europe/Prague",city:"Prague",country:"Czechia",abbr:"CET",dst:"CEST"},
-  {id:"Europe/Budapest",city:"Budapest",country:"Hungary",abbr:"CET",dst:"CEST"},
-  {id:"Europe/Belgrade",city:"Belgrade",country:"Serbia",abbr:"CET",dst:"CEST"},
-  {id:"Europe/Helsinki",city:"Helsinki",country:"Finland",abbr:"EET",dst:"EEST"},
-  {id:"Europe/Bucharest",city:"Bucharest",country:"Romania",abbr:"EET",dst:"EEST"},
-  {id:"Europe/Sofia",city:"Sofia",country:"Bulgaria",abbr:"EET",dst:"EEST"},
-  {id:"Atlantic/Reykjavik",city:"Reykjavik",country:"Iceland",abbr:"GMT"},
-  // Africa
-  {id:"Africa/Casablanca",city:"Casablanca",country:"Morocco",abbr:"+01"},
-  {id:"Africa/Algiers",city:"Algiers",country:"Algeria",abbr:"CET"},
-  {id:"Africa/Khartoum",city:"Khartoum",country:"Sudan",abbr:"CAT"},
-  {id:"Africa/Harare",city:"Harare",country:"Zimbabwe",abbr:"CAT"},
-  // Middle East & Caucasus
-  {id:"Asia/Baghdad",city:"Baghdad",country:"Iraq",abbr:"AST"},
-  {id:"Asia/Qatar",city:"Doha",country:"Qatar",abbr:"AST"},
-  {id:"Asia/Kuwait",city:"Kuwait City",country:"Kuwait",abbr:"AST"},
-  {id:"Asia/Beirut",city:"Beirut",country:"Lebanon",abbr:"EET",dst:"EEST"},
-  {id:"Asia/Baku",city:"Baku",country:"Azerbaijan",abbr:"AZT"},
-  {id:"Asia/Tbilisi",city:"Tbilisi",country:"Georgia",abbr:"GET"},
-  {id:"Asia/Yerevan",city:"Yerevan",country:"Armenia",abbr:"AMT"},
-  {id:"Asia/Kabul",city:"Kabul",country:"Afghanistan",abbr:"AFT"},
-  // Central, North & East Asia
-  {id:"Asia/Tashkent",city:"Tashkent",country:"Uzbekistan",abbr:"UZT"},
-  {id:"Asia/Almaty",city:"Almaty",country:"Kazakhstan",abbr:"+05"},
-  {id:"Asia/Yekaterinburg",city:"Yekaterinburg",country:"Russia",abbr:"YEKT"},
-  {id:"Asia/Yangon",city:"Yangon",country:"Myanmar",abbr:"MMT"},
-  {id:"Asia/Novosibirsk",city:"Novosibirsk",country:"Russia",abbr:"+07"},
-  {id:"Asia/Makassar",city:"Denpasar",country:"Indonesia",abbr:"WITA"},
-  {id:"Asia/Ulaanbaatar",city:"Ulaanbaatar",country:"Mongolia",abbr:"ULAT"},
-  {id:"Asia/Vladivostok",city:"Vladivostok",country:"Russia",abbr:"VLAT"},
-  // Oceania & Pacific
-  {id:"Australia/Darwin",city:"Darwin",country:"Australia",abbr:"ACST"},
-  {id:"Pacific/Guam",city:"Hagåtña",country:"Guam",abbr:"ChST"},
-  {id:"Pacific/Port_Moresby",city:"Port Moresby",country:"Papua New Guinea",abbr:"PGT"},
-  {id:"Pacific/Noumea",city:"Nouméa",country:"New Caledonia",abbr:"NCT"},
-  {id:"Pacific/Tongatapu",city:"Nuku'alofa",country:"Tonga",abbr:"TOT"},
-  {id:"Pacific/Apia",city:"Apia",country:"Samoa",abbr:"WST"},
-
-  // ── More cities sharing a zone above (alias keys) ──
-  {key:"America/Toronto|Montreal",id:"America/Toronto",city:"Montreal",country:"Canada",abbr:"EST",dst:"EDT"},
-  {key:"America/Toronto|Ottawa",id:"America/Toronto",city:"Ottawa",country:"Canada",abbr:"EST",dst:"EDT"},
-  {key:"America/New_York|Atlanta",id:"America/New_York",city:"Atlanta",country:"United States",abbr:"EST",dst:"EDT"},
-  {key:"America/New_York|Philadelphia",id:"America/New_York",city:"Philadelphia",country:"United States",abbr:"EST",dst:"EDT"},
-  {key:"America/Sao_Paulo|Rio_de_Janeiro",id:"America/Sao_Paulo",city:"Rio de Janeiro",country:"Brazil",abbr:"BRT"},
-  {key:"America/Sao_Paulo|Brasilia",id:"America/Sao_Paulo",city:"Brasília",country:"Brazil",abbr:"BRT"},
-  {key:"Europe/Zurich|Geneva",id:"Europe/Zurich",city:"Geneva",country:"Switzerland",abbr:"CET",dst:"CEST"},
-  {key:"Europe/Moscow|Saint_Petersburg",id:"Europe/Moscow",city:"Saint Petersburg",country:"Russia",abbr:"MSK"},
-  {key:"Africa/Nairobi|Addis_Ababa",id:"Africa/Nairobi",city:"Addis Ababa",country:"Ethiopia",abbr:"EAT"},
-  {key:"Africa/Lagos|Kinshasa",id:"Africa/Lagos",city:"Kinshasa",country:"DR Congo",abbr:"WAT"},
-  {key:"Asia/Dubai|Abu_Dhabi",id:"Asia/Dubai",city:"Abu Dhabi",country:"UAE",abbr:"GST"},
-  {key:"Asia/Jerusalem|Tel_Aviv",id:"Asia/Jerusalem",city:"Tel Aviv",country:"Israel",abbr:"IST",dst:"IDT"},
-  {key:"Asia/Kolkata|New_Delhi",id:"Asia/Kolkata",city:"New Delhi",country:"India",abbr:"IST"},
-  {key:"Asia/Kolkata|Bengaluru",id:"Asia/Kolkata",city:"Bengaluru",country:"India",abbr:"IST"},
-  {key:"Asia/Karachi|Islamabad",id:"Asia/Karachi",city:"Islamabad",country:"Pakistan",abbr:"PKT"},
-  {key:"Asia/Ho_Chi_Minh|Hanoi",id:"Asia/Ho_Chi_Minh",city:"Hanoi",country:"Vietnam",abbr:"ICT"},
-  {key:"Asia/Shanghai|Guangzhou",id:"Asia/Shanghai",city:"Guangzhou",country:"China",abbr:"CST"},
-  {key:"Asia/Shanghai|Shenzhen",id:"Asia/Shanghai",city:"Shenzhen",country:"China",abbr:"CST"},
-  {key:"Asia/Tokyo|Osaka",id:"Asia/Tokyo",city:"Osaka",country:"Japan",abbr:"JST"},
-  {key:"Australia/Sydney|Canberra",id:"Australia/Sydney",city:"Canberra",country:"Australia",abbr:"AEST",dst:"AEDT"},
-  {key:"Pacific/Auckland|Wellington",id:"Pacific/Auckland",city:"Wellington",country:"New Zealand",abbr:"NZST",dst:"NZDT"},
-];
-
-const DEFAULT_TIMEZONES = [
-  "UTC","America/New_York","Europe/London","Europe/Paris",
-  "Asia/Dubai","Asia/Kolkata","Asia/Singapore","Asia/Tokyo",
-  "Australia/Sydney","America/Los_Angeles","America/Sao_Paulo","America/Toronto"
-];
-
-function canonicalTz(tz) {
-  try { return Intl.DateTimeFormat('en-US', { timeZone: tz }).resolvedOptions().timeZone; }
-  catch { return tz; }
-}
-
-const LOCAL_TZ = (() => {
-  let raw;
-  try { raw = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'; }
-  catch { return 'UTC'; }
-  const canon = canonicalTz(raw);
-  const match = TIMEZONE_DATA.find(d => canonicalTz(d.id) === canon);
-  return match ? match.id : raw;
-})();
-
-if (!TIMEZONE_DATA.some(d => d.id === LOCAL_TZ)) {
-  const parts = LOCAL_TZ.split('/');
-  TIMEZONE_DATA.push({
-    id: LOCAL_TZ,
-    city: parts[parts.length - 1].replace(/_/g, ' '),
-    country: parts.length > 1 ? parts[0] : '',
-    abbr: '',
-  });
-}
-
-// Each card is identified by a stable `key`. Alias cities (several cities sharing
-// one IANA zone, e.g. Boston/New York) declare their own `key`; everything else
-// keys by its IANA id. The id is always used for the actual time calculations.
-TIMEZONE_DATA.forEach(d => { if (!d.key) d.key = d.id; });
-
-function dataByKey(key) {
-  return TIMEZONE_DATA.find(d => d.key === key) || TIMEZONE_DATA.find(d => d.id === key);
-}
-
-// DOM-safe, collision-free element id derived from a card key.
-function domId(key) {
-  return key.replace(/[^a-zA-Z0-9]+/g, '_');
-}
+// The shared dataset and helpers (TIMEZONE_DATA, DEFAULT_TIMEZONES, STORAGE_KEY,
+// canonicalTz, LOCAL_TZ, dataByKey, keySlug, formatTime) are defined in
+// worldtime-data.js, loaded just above. Alias keySlug -> domId so the existing
+// call sites in this file keep working unchanged.
+const domId = keySlug;
 
 const state = {
   timezones: [LOCAL_TZ, ...DEFAULT_TIMEZONES.filter(tz => tz !== LOCAL_TZ)],
@@ -707,10 +507,6 @@ const state = {
   mapGroupMinute: null,
   mapBands: [],
 };
-
-// Shared with explore.html via this localStorage key. We persist only the
-// user-facing preferences and selection — never the transient time-travel offset.
-const STORAGE_KEY = 'worldtime:v1';
 
 function saveState() {
   try {
@@ -827,14 +623,6 @@ function zoneAbbr(tzId, data, when) {
 
 function isDaytime(hour) {
   return hour >= 6 && hour < 18;
-}
-
-function formatTime(hour, minute, second, use24h, showSeconds = true) {
-  const pad = (n) => String(n).padStart(2, '0');
-  const secs = showSeconds ? ':' + pad(second) : '';
-  if (use24h) return pad(hour) + ':' + pad(minute) + secs;
-  const h12 = hour % 12 || 12;
-  return pad(h12) + ':' + pad(minute) + secs + ' ' + (hour < 12 ? 'AM' : 'PM');
 }
 
 function getSliderValue(key) {
