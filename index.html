@@ -361,6 +361,7 @@ a{color:var(--color-primary);text-decoration:none}
 }
 .map-col.day .map-col-period{color:var(--color-day)}
 .map-col.night .map-col-period{color:var(--color-night)}
+.map-col-period .mc-icon{display:inline-flex;align-items:center}
 .map-col-period .icon{width:13px;height:13px}
 .map-col-count{margin-left:auto;color:var(--color-text-faint);font-weight:500;letter-spacing:0}
 .map-col-cities{display:flex;flex-direction:column;padding:0.5rem;gap:0.125rem}
@@ -698,6 +699,13 @@ const state = {
   intervalId: null,
   isDragging: false,
   sliderValues: {},
+  // Zone-map render cache. `mapSig` is a fingerprint of the current band layout;
+  // when it's null the map is rebuilt on the next render. `mapBands` holds the
+  // per-column element refs so ticks can refresh times without touching the DOM
+  // tree. `mapGroupMinute` throttles the (Intl-heavy) re-grouping to once a minute.
+  mapSig: null,
+  mapGroupMinute: null,
+  mapBands: [],
 };
 
 // Shared with explore.html via this localStorage key. We persist only the
@@ -1015,21 +1023,45 @@ function formatOffset(min) {
 // Map view: lay every catalog city into a vertical band keyed by its current
 // UTC offset, ordered west (negative) to east (positive). All cities in a band
 // share the same wall-clock time, so the time/day-night is shown once per band.
+// The Zone map is split into two phases so it doesn't thrash the DOM every
+// second. buildMapStructure() writes the column/city markup — the expensive part,
+// since it groups every zone by offset and resolves each abbreviation via Intl.
+// updateMapTimes() then refreshes only the per-band clock and day/night state on
+// each tick using plain arithmetic (no Intl, no innerHTML). The structure is
+// rebuilt only when the layout actually changes: the selection changed (mapSig is
+// forced to null), or a DST transition shifted a zone between bands — re-checked
+// at most once per minute rather than every second.
 function renderMap() {
   const strip = document.getElementById('mapStrip');
   if (!strip) return;
-  const now = new Date();
-  const adjNow = new Date(now.getTime() + state.offsetMinutes * 60000);
+  const adjNow = new Date(Date.now() + state.offsetMinutes * 60000);
+  const minuteStamp = Math.floor(adjNow.getTime() / 60000);
 
-  const groups = new Map();
-  TIMEZONE_DATA.forEach(d => {
-    const off = zoneOffsetMinutes(d.id, adjNow);
-    if (!groups.has(off)) groups.set(off, []);
-    groups.get(off).push(d);
-  });
+  if (state.mapSig === null || minuteStamp !== state.mapGroupMinute) {
+    state.mapGroupMinute = minuteStamp;
 
-  const offsets = [...groups.keys()].sort((a, b) => a - b);
+    const groups = new Map();
+    TIMEZONE_DATA.forEach(d => {
+      const off = zoneOffsetMinutes(d.id, adjNow);
+      if (!groups.has(off)) groups.set(off, []);
+      groups.get(off).push(d);
+    });
+    const offsets = [...groups.keys()].sort((a, b) => a - b);
 
+    const sig = offsets.map(o => o + ':' + groups.get(o).map(d => d.key).join(',')).join('|')
+      + '||' + state.timezones.join(',');
+    if (sig !== state.mapSig) {
+      state.mapSig = sig;
+      buildMapStructure(strip, offsets, groups, adjNow);
+    }
+  }
+
+  updateMapTimes(adjNow);
+}
+
+// Write the band columns once. Times are left blank here and filled by
+// updateMapTimes, so build and refresh can never disagree.
+function buildMapStructure(strip, offsets, groups, adjNow) {
   strip.innerHTML = offsets.map(off => {
     const cities = groups.get(off);
     cities.sort((a, b) => {
@@ -1039,10 +1071,6 @@ function renderMap() {
       if (sa !== sb) return sa ? -1 : 1;
       return a.city.localeCompare(b.city);
     });
-
-    const t = getCurrentTime(cities[0].id, adjNow);
-    const day = isDaytime(t.hour);
-    const timeStr = formatTime(t.hour, t.minute, t.second, state.is24h, state.showSeconds);
 
     const citiesHtml = cities.map(d => {
       const sel = state.timezones.includes(d.key);
@@ -1056,18 +1084,54 @@ function renderMap() {
         '</div>';
     }).join('');
 
-    return '<div class="map-col ' + (day ? 'day' : 'night') + '">' +
+    return '<div class="map-col" data-off="' + off + '">' +
       '<div class="map-col-head">' +
         '<div class="map-col-offset">' + formatOffset(off) + '</div>' +
-        '<div class="map-col-time">' + timeStr + '</div>' +
-        '<div class="map-col-period">' + (day ? MAP_ICON_DAY : MAP_ICON_NIGHT) +
-          '<span>' + (day ? 'Day' : 'Night') + '</span>' +
+        '<div class="map-col-time"></div>' +
+        '<div class="map-col-period">' +
+          '<span class="mc-icon"></span>' +
+          '<span class="mc-word"></span>' +
           '<span class="map-col-count">' + cities.length + '</span>' +
         '</div>' +
       '</div>' +
       '<div class="map-col-cities">' + citiesHtml + '</div>' +
     '</div>';
   }).join('');
+
+  // Cache per-band element refs. Columns are appended in ascending-offset order,
+  // so strip.children lines up with `offsets`. `day` starts null so the first
+  // updateMapTimes always paints the day/night styling.
+  state.mapBands = offsets.map((off, i) => {
+    const col = strip.children[i];
+    return {
+      off,
+      col,
+      timeEl: col.querySelector('.map-col-time'),
+      iconEl: col.querySelector('.mc-icon'),
+      wordEl: col.querySelector('.mc-word'),
+      day: null,
+    };
+  });
+}
+
+// Per-tick refresh: derive each band's wall clock from the shared instant by
+// simple offset arithmetic (every zone shares the same seconds), and flip the
+// day/night styling only when it actually changes.
+function updateMapTimes(adjNow) {
+  const baseMs = adjNow.getTime();
+  state.mapBands.forEach(b => {
+    const d = new Date(baseMs + b.off * 60000);
+    const hour = d.getUTCHours();
+    b.timeEl.textContent = formatTime(hour, d.getUTCMinutes(), d.getUTCSeconds(), state.is24h, state.showSeconds);
+    const day = isDaytime(hour);
+    if (day !== b.day) {
+      b.day = day;
+      b.col.classList.toggle('day', day);
+      b.col.classList.toggle('night', !day);
+      b.iconEl.innerHTML = day ? MAP_ICON_DAY : MAP_ICON_NIGHT;
+      b.wordEl.textContent = day ? 'Day' : 'Night';
+    }
+  });
 }
 
 // Render whichever view is currently active.
@@ -1131,6 +1195,7 @@ function stopClock() {
 
 function setOffset(deltaMinutes) {
   state.offsetMinutes += deltaMinutes;
+  state.mapSig = null; // offset change can re-band zones — force a map rebuild
   render();
 }
 
@@ -1181,6 +1246,7 @@ document.addEventListener('touchend', () => {
 
 function resetToNow() {
   state.offsetMinutes = 0;
+  state.mapSig = null; // back to real time — force a map rebuild
   state.timezones.forEach(tzKey => {
     const data = dataByKey(tzKey);
     if (!data) return;
@@ -1196,6 +1262,7 @@ function addTimezone(key) {
     state.timezones.push(key);
     const t = getCurrentTime(data.id);
     state.sliderValues[key] = t.hour * 60 + t.minute;
+    state.mapSig = null; // selection changed — force a map rebuild
     render();
     saveState();
   }
@@ -1206,6 +1273,7 @@ function addTimezone(key) {
 function removeTimezone(key) {
   state.timezones = state.timezones.filter(k => k !== key);
   delete state.sliderValues[key];
+  state.mapSig = null; // selection changed — force a map rebuild
   render();
   saveState();
 }
