@@ -50,18 +50,16 @@ describe('formatTime', () => {
 
   test('12-hour AM/PM boundaries', () => {
     assert.equal(formatTime(11, 59, 0, false, false), '11:59 AM');
-    assert.equal(formatTime(13, 0, 0, false, false), '01:00 PM');
+    assert.equal(formatTime(13, 0, 0, false, false), '1:00 PM');
     assert.equal(formatTime(23, 59, 59, false, true), '11:59:59 PM');
-    assert.equal(formatTime(1, 5, 9, false, true), '01:05:09 AM');
+    assert.equal(formatTime(1, 5, 9, false, true), '1:05:09 AM');
   });
 
-  // Documents current behaviour: the 12-hour clock zero-pads the hour (via
-  // pad(h12)), so 1 PM renders as "01:00 PM", not "1:00 PM". Both cards line up
-  // to the same width as a result. Kept as an explicit test so any future change
-  // to this convention is a deliberate, visible decision.
-  test('12-hour hour is zero-padded to two digits', () => {
-    assert.equal(formatTime(1, 0, 0, false, false), '01:00 AM');
-    assert.equal(formatTime(9, 30, 0, false, false), '09:30 AM');
+  // The 12-hour clock shows the hour WITHOUT a leading zero (e.g. "1:00 PM",
+  // not "01:00 PM"), while minutes and seconds stay zero-padded.
+  test('12-hour hour is not zero-padded, minutes/seconds are', () => {
+    assert.equal(formatTime(1, 0, 0, false, false), '1:00 AM');
+    assert.equal(formatTime(9, 30, 5, false, true), '9:30:05 AM');
   });
 
   test('showSeconds defaults to true when omitted', () => {

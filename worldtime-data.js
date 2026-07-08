@@ -229,7 +229,8 @@ function formatTime(hour, minute, second, use24h, showSeconds = true) {
   const secs = showSeconds ? ':' + pad(second) : '';
   if (use24h) return pad(hour) + ':' + pad(minute) + secs;
   const h12 = hour % 12 || 12;
-  return pad(h12) + ':' + pad(minute) + secs + ' ' + (hour < 12 ? 'AM' : 'PM');
+  // 12-hour clock shows the hour without a leading zero (e.g. "1:00 PM").
+  return h12 + ':' + pad(minute) + secs + ' ' + (hour < 12 ? 'AM' : 'PM');
 }
 
 // ── DST-aware zone math ──────────────────────────────────────────────────────
