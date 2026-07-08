@@ -550,6 +550,20 @@ function syncControls() {
   else { sunIcon.style.display = 'none'; moonIcon.style.display = ''; label.textContent = 'Dark'; }
 }
 
+// Live cross-tab sync. When another tab (this page or explore.html) changes the
+// shared preferences/selection in localStorage, re-apply them here without a
+// reload. The `storage` event fires only in *other* documents, so this never
+// echoes our own writes and can't loop. The transient time-travel offset is
+// per-tab and intentionally left untouched.
+function syncFromStorage() {
+  loadState();
+  syncControls();
+  const addSearch = document.getElementById('addSearch');
+  renderAddList(addSearch ? addSearch.value : '');
+  state.mapSig = null; // selection may have changed — force a map rebuild
+  render();
+}
+
 function getCurrentTime(tzId, when) {
   const instant = when || new Date();
   const tzFormatter = new Intl.DateTimeFormat('en-US', {
@@ -1153,6 +1167,12 @@ function init() {
   document.getElementById('tabMap').addEventListener('click', () => switchView('map'));
 
   addSearch.addEventListener('input', (e) => renderAddList(e.target.value));
+
+  // Keep this tab in step with changes made in any other Worldtime tab.
+  window.addEventListener('storage', (e) => {
+    if (e.key && e.key !== STORAGE_KEY) return;
+    syncFromStorage();
+  });
 
   document.getElementById('addPanel').classList.add('visible');
   renderAddList('');

@@ -305,10 +305,10 @@ function readSaved() {
 const saved = readSaved();
 let is24h = saved && typeof saved.is24h === 'boolean' ? saved.is24h : true;
 let isDark = saved && typeof saved.isDark === 'boolean' ? saved.isDark : true;
-const selectedKeys = (saved && Array.isArray(saved.timezones) && saved.timezones.length)
+let selectedKeys = (saved && Array.isArray(saved.timezones) && saved.timezones.length)
   ? saved.timezones
   : [LOCAL_TZ, ...DEFAULT_TIMEZONES.filter(tz => tz !== LOCAL_TZ)];
-const selectedCities = selectedKeys.map(byKey).filter(Boolean);
+let selectedCities = selectedKeys.map(byKey).filter(Boolean);
 
 // DST-correct local time for a zone at a given instant (defaults to now).
 function getCurrentTime(tzId, when) {
@@ -606,6 +606,25 @@ function toggleTheme() {
   persistTheme();
 }
 
+// Live cross-tab sync. When index.html (or another explore tab) changes the
+// shared preferences/selection, re-read them and redraw without a reload. The
+// `storage` event fires only in *other* documents, so our own writes never echo
+// and can't loop. The current time-travel offset is per-tab, so redrawing via
+// updateTimes() (which reads adjNow()) keeps the user's scrub position intact.
+function syncFromStorage() {
+  const s = readSaved();
+  if (!s || typeof s !== 'object') return;
+  if (typeof s.is24h === 'boolean') is24h = s.is24h;
+  if (typeof s.isDark === 'boolean') isDark = s.isDark;
+  selectedKeys = (Array.isArray(s.timezones) && s.timezones.length)
+    ? s.timezones
+    : [LOCAL_TZ, ...DEFAULT_TIMEZONES.filter(tz => tz !== LOCAL_TZ)];
+  selectedCities = selectedKeys.map(byKey).filter(Boolean);
+  applyTheme();
+  buildMap();     // re-layout for the new selection / 12h–24h label widths
+  updateTimes();  // buildMap leaves time text empty; fill it immediately
+}
+
 function init() {
   applyTheme();
   document.getElementById('btnTheme').addEventListener('click', toggleTheme);
@@ -619,6 +638,12 @@ function init() {
   document.getElementById('tbNextDay').addEventListener('click', () => stepDay(1));
   document.addEventListener('mouseup', endScrub);
   document.addEventListener('touchend', endScrub);
+
+  // Keep this tab in step with changes made in any other Worldtime tab.
+  window.addEventListener('storage', (e) => {
+    if (e.key && e.key !== STORAGE_KEY) return;
+    syncFromStorage();
+  });
 
   startTimer();
 }
