@@ -663,10 +663,10 @@ function createCard(key) {
   card.innerHTML = `
     <div class="card-header">
       <div>
-        <div class="card-city">${data.city}${isLocal ? '<span class="card-local-tag">Local</span>' : ''}</div>
-        <div class="card-country">${data.country}</div>
+        <div class="card-city">${escHtml(data.city)}${isLocal ? '<span class="card-local-tag">Local</span>' : ''}</div>
+        <div class="card-country">${escHtml(data.country)}</div>
       </div>
-      ${isLocal ? '' : `<button class="card-remove" data-remove="${key}" aria-label="Remove ${data.city}" title="Remove">
+      ${isLocal ? '' : `<button class="card-remove" data-remove="${escAttr(key)}" aria-label="Remove ${escAttr(data.city)}" title="Remove">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>`}
     </div>
@@ -682,7 +682,7 @@ function createCard(key) {
         <span class="slider-label">11PM</span>
       </div>
       <input type="range" class="slider" min="0" max="1439" value="${sliderVal}"
-        data-tz="${key}" aria-label="Time slider for ${data.city}" tabindex="0">
+        data-tz="${escAttr(key)}" aria-label="Time slider for ${escAttr(data.city)}" tabindex="0">
       <div class="slider-value" id="slider-val-${dk}"></div>
     </div>
   `;
@@ -880,9 +880,9 @@ function buildMapStructure(strip, offsets, groups, adjNow) {
       const cls = 'map-city' + (loc ? ' local' : (sel ? ' selected' : ''));
       const abbr = zoneAbbr(d.id, d, adjNow);
       return '<div class="' + cls + '">' +
-        '<span class="map-city-main"><span class="map-city-name">' + d.city + '</span>' +
+        '<span class="map-city-main"><span class="map-city-name">' + escHtml(d.city) + '</span>' +
         (loc ? '<span class="map-city-tag">Local</span>' : '') + '</span>' +
-        '<span class="map-city-sub">' + d.country + ' &middot; ' + abbr + '</span>' +
+        '<span class="map-city-sub">' + escHtml(d.country) + ' &middot; ' + escHtml(abbr) + '</span>' +
         '</div>';
     }).join('');
 
@@ -1136,10 +1136,10 @@ function renderAddList(query) {
   list.innerHTML = filtered.map(d => `
     <div class="add-item">
       <div class="add-item-info">
-        <span class="add-item-city">${d.city}</span>
-        <span class="add-item-meta">${d.country} &middot; ${d.liveAbbr}</span>
+        <span class="add-item-city">${escHtml(d.city)}</span>
+        <span class="add-item-meta">${escHtml(d.country)} &middot; ${escHtml(d.liveAbbr)}</span>
       </div>
-      <button class="add-item-add" data-add="${d.key}" aria-label="Add ${d.city}">Add</button>
+      <button class="add-item-add" data-add="${escAttr(d.key)}" aria-label="Add ${escAttr(d.city)}">Add</button>
     </div>
   `).join('');
 

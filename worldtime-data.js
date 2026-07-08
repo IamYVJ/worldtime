@@ -231,3 +231,16 @@ function formatTime(hour, minute, second, use24h, showSeconds = true) {
   const h12 = hour % 12 || 12;
   return pad(h12) + ':' + pad(minute) + secs + ' ' + (hour < 12 ? 'AM' : 'PM');
 }
+
+// HTML-escaping helpers. City/country names come from the static catalog above,
+// not user input, so this is defensive consistency rather than a live XSS fix —
+// but every value interpolated into innerHTML on either page should go through
+// one of these so escaping can never drift between the two.
+//   escHtml  — for HTML text content (escapes & < >)
+//   escAttr  — for values placed inside a double-quoted attribute (also escapes ")
+function escHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function escAttr(s) {
+  return escHtml(s).replace(/"/g, '&quot;');
+}

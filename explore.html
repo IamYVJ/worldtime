@@ -351,9 +351,9 @@ function bandDayOffset(n, base) {
   return Math.floor(total / 1440);
 }
 
-function esc(s) {
-  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
+// Escaping lives in worldtime-data.js so both pages share one implementation.
+// `esc` keeps this page's existing call sites working (HTML text content).
+const esc = escHtml;
 
 function buildMap() {
   const parts = [];
