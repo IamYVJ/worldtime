@@ -498,7 +498,8 @@ function dayShift(now) {
 
 function updateReadout(now) {
   const tEl = document.getElementById('tbTime');
-  if (tEl) tEl.textContent = formatTime(now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds(), is24h, true);
+  // Explore intentionally never shows seconds — keep every readout on this page consistent.
+  if (tEl) tEl.textContent = formatTime(now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds(), is24h, false);
 
   const shift = dayShift(now);
   const dEl = document.getElementById('tbDay');
