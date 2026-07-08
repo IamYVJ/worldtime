@@ -232,6 +232,60 @@ function formatTime(hour, minute, second, use24h, showSeconds = true) {
   return pad(h12) + ':' + pad(minute) + secs + ' ' + (hour < 12 ? 'AM' : 'PM');
 }
 
+// ── DST-aware zone math ──────────────────────────────────────────────────────
+// These lean on Intl's IANA tz database, so they stay correct across DST
+// transitions without any hard-coded offset tables. Pure functions of their
+// arguments (no page state), which also makes them unit-testable under Node.
+
+// Days-since-epoch for the calendar date in a given zone at a given instant.
+function dayNumberInZone(tzId, instant) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: tzId, year: 'numeric', month: 'numeric', day: 'numeric',
+  }).formatToParts(instant);
+  const g = (type) => parseInt(parts.find(p => p.type === type)?.value || '0', 10);
+  return Math.round(Date.UTC(g('year'), g('month') - 1, g('day')) / 86400000);
+}
+
+// Offset (in minutes, east-positive) of a zone at a given instant.
+function zoneOffsetMinutes(tzId, date) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: tzId, hour12: false,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+  }).formatToParts(date);
+  const g = (t) => parseInt(parts.find(p => p.type === t)?.value || '0', 10);
+  const asUTC = Date.UTC(g('year'), g('month') - 1, g('day'), g('hour') % 24, g('minute'), g('second'));
+  return Math.round((asUTC - date.getTime()) / 60000);
+}
+
+// Real, DST-aware short zone name (e.g. EDT in summer, EST in winter).
+// `data` is the TIMEZONE_DATA entry: `abbr` is the standard-time name and the
+// optional `dst` is the daylight-time name. We trust the engine when it returns
+// a genuine letter abbreviation (mainly US/Canada zones); otherwise we pick
+// standard vs daylight by detecting whether the zone is in DST right now.
+function zoneAbbr(tzId, data, when) {
+  const now = when || new Date();
+  try {
+    const name = new Intl.DateTimeFormat('en-US', { timeZone: tzId, timeZoneName: 'short' })
+      .formatToParts(now).find(p => p.type === 'timeZoneName')?.value || '';
+    if (name && !/^(GMT|UTC)/i.test(name)) return name;
+  } catch (e) {}
+  const std = (data && data.abbr) || '';
+  const dst = data && data.dst;
+  if (!dst) return std;
+  const year = now.getUTCFullYear();
+  const janOff = zoneOffsetMinutes(tzId, new Date(Date.UTC(year, 0, 15)));
+  const julOff = zoneOffsetMinutes(tzId, new Date(Date.UTC(year, 6, 15)));
+  if (janOff === julOff) return std; // zone doesn't actually observe DST
+  const dstOff = Math.max(janOff, julOff);
+  return zoneOffsetMinutes(tzId, now) === dstOff ? dst : std;
+}
+
+// Simple day/night split used for card theming (06:00–17:59 is "day").
+function isDaytime(hour) {
+  return hour >= 6 && hour < 18;
+}
+
 // HTML-escaping helpers. City/country names come from the static catalog above,
 // not user input, so this is defensive consistency rather than a live XSS fix —
 // but every value interpolated into innerHTML on either page should go through
@@ -243,4 +297,16 @@ function escHtml(s) {
 }
 function escAttr(s) {
   return escHtml(s).replace(/"/g, '&quot;');
+}
+
+// CommonJS export for Node-based unit tests. Guarded so the browser — where
+// `module` is undefined and this file is just a <script> — ignores it entirely.
+// Keeps the app build-free while letting `node --test` require these helpers.
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    TIMEZONE_DATA, DEFAULT_TIMEZONES, STORAGE_KEY, LOCAL_TZ,
+    canonicalTz, dataByKey, keySlug, formatTime,
+    dayNumberInZone, zoneOffsetMinutes, zoneAbbr, isDaytime,
+    escHtml, escAttr,
+  };
 }

@@ -1,0 +1,9 @@
+{
+  "name": "worldtime",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A living world clock — see the world, one hour at a time.",
+  "scripts": {
+    "test": "node --test"
+  }
+}

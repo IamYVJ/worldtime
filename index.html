@@ -598,53 +598,9 @@ function getCurrentTime(tzId, when) {
   return { hour, minute, second, weekday, month, day, year, date: dateStr, utcOffset };
 }
 
-// Days-since-epoch for the calendar date in a given zone at a given instant.
-function dayNumberInZone(tzId, instant) {
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone: tzId, year: 'numeric', month: 'numeric', day: 'numeric',
-  }).formatToParts(instant);
-  const g = (type) => parseInt(parts.find(p => p.type === type)?.value || '0', 10);
-  return Math.round(Date.UTC(g('year'), g('month') - 1, g('day')) / 86400000);
-}
-
-// Offset (in minutes, east-positive) of a zone at a given instant.
-function zoneOffsetMinutes(tzId, date) {
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone: tzId, hour12: false,
-    year: 'numeric', month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit', second: '2-digit',
-  }).formatToParts(date);
-  const g = (t) => parseInt(parts.find(p => p.type === t)?.value || '0', 10);
-  const asUTC = Date.UTC(g('year'), g('month') - 1, g('day'), g('hour') % 24, g('minute'), g('second'));
-  return Math.round((asUTC - date.getTime()) / 60000);
-}
-
-// Real, DST-aware short zone name (e.g. EDT in summer, EST in winter).
-// `data` is the TIMEZONE_DATA entry: `abbr` is the standard-time name and the
-// optional `dst` is the daylight-time name. We trust the engine when it returns
-// a genuine letter abbreviation (mainly US/Canada zones); otherwise we pick
-// standard vs daylight by detecting whether the zone is in DST right now.
-function zoneAbbr(tzId, data, when) {
-  const now = when || new Date();
-  try {
-    const name = new Intl.DateTimeFormat('en-US', { timeZone: tzId, timeZoneName: 'short' })
-      .formatToParts(now).find(p => p.type === 'timeZoneName')?.value || '';
-    if (name && !/^(GMT|UTC)/i.test(name)) return name;
-  } catch (e) {}
-  const std = (data && data.abbr) || '';
-  const dst = data && data.dst;
-  if (!dst) return std;
-  const year = now.getUTCFullYear();
-  const janOff = zoneOffsetMinutes(tzId, new Date(Date.UTC(year, 0, 15)));
-  const julOff = zoneOffsetMinutes(tzId, new Date(Date.UTC(year, 6, 15)));
-  if (janOff === julOff) return std; // zone doesn't actually observe DST
-  const dstOff = Math.max(janOff, julOff);
-  return zoneOffsetMinutes(tzId, now) === dstOff ? dst : std;
-}
-
-function isDaytime(hour) {
-  return hour >= 6 && hour < 18;
-}
+// dayNumberInZone, zoneOffsetMinutes, zoneAbbr and isDaytime now live in the
+// shared worldtime-data.js (loaded before this script) so they can be reused by
+// explore.html and covered by unit tests.
 
 function getSliderValue(key) {
   if (state.sliderValues[key] !== undefined) return state.sliderValues[key];
