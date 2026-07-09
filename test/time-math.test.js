@@ -19,6 +19,7 @@ const {
   dataByKey,
   keySlug,
   formatTime,
+  getDateTimeFormat,
   dayNumberInZone,
   zoneOffsetMinutes,
   zoneAbbr,
@@ -64,6 +65,30 @@ describe('formatTime', () => {
 
   test('showSeconds defaults to true when omitted', () => {
     assert.equal(formatTime(1, 2, 3, true), '01:02:03');
+  });
+});
+
+describe('getDateTimeFormat', () => {
+  // The whole point of this factory is memoization: both pages format the same
+  // zones many times per second, so identical requests must reuse one instance
+  // rather than allocate a fresh (expensive) Intl.DateTimeFormat each tick.
+  test('returns the same instance for identical zone + options', () => {
+    const a = getDateTimeFormat('America/New_York', { hour: '2-digit' });
+    const b = getDateTimeFormat('America/New_York', { hour: '2-digit' });
+    assert.equal(a, b);
+  });
+
+  test('returns distinct instances for different zones or options', () => {
+    const ny = getDateTimeFormat('America/New_York', { hour: '2-digit' });
+    const la = getDateTimeFormat('America/Los_Angeles', { hour: '2-digit' });
+    const nyMin = getDateTimeFormat('America/New_York', { minute: '2-digit' });
+    assert.notEqual(ny, la);
+    assert.notEqual(ny, nyMin);
+  });
+
+  test('the cached formatter is bound to the requested zone', () => {
+    const fmt = getDateTimeFormat('Asia/Tokyo', { hour: '2-digit' });
+    assert.equal(fmt.resolvedOptions().timeZone, 'Asia/Tokyo');
   });
 });
 

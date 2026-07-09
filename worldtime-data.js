@@ -238,10 +238,27 @@ function formatTime(hour, minute, second, use24h, showSeconds = true) {
 // transitions without any hard-coded offset tables. Pure functions of their
 // arguments (no page state), which also makes them unit-testable under Node.
 
+// Intl.DateTimeFormat objects are comparatively expensive to construct but cheap
+// to reuse. Both pages re-format the same handful of zones many times per second
+// (every clock tick, for every card), so we memoize formatters by zone + option
+// signature instead of allocating a new one each call. The cache is effectively
+// tiny — at most (zones shown) × (distinct option sets), a few hundred entries in
+// the worst case — so it never needs eviction.
+const _dtfCache = new Map();
+function getDateTimeFormat(tzId, options) {
+  const key = tzId + '|' + JSON.stringify(options);
+  let fmt = _dtfCache.get(key);
+  if (!fmt) {
+    fmt = new Intl.DateTimeFormat('en-US', Object.assign({ timeZone: tzId }, options));
+    _dtfCache.set(key, fmt);
+  }
+  return fmt;
+}
+
 // Days-since-epoch for the calendar date in a given zone at a given instant.
 function dayNumberInZone(tzId, instant) {
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone: tzId, year: 'numeric', month: 'numeric', day: 'numeric',
+  const parts = getDateTimeFormat(tzId, {
+    year: 'numeric', month: 'numeric', day: 'numeric',
   }).formatToParts(instant);
   const g = (type) => parseInt(parts.find(p => p.type === type)?.value || '0', 10);
   return Math.round(Date.UTC(g('year'), g('month') - 1, g('day')) / 86400000);
@@ -249,8 +266,8 @@ function dayNumberInZone(tzId, instant) {
 
 // Offset (in minutes, east-positive) of a zone at a given instant.
 function zoneOffsetMinutes(tzId, date) {
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone: tzId, hour12: false,
+  const parts = getDateTimeFormat(tzId, {
+    hour12: false,
     year: 'numeric', month: '2-digit', day: '2-digit',
     hour: '2-digit', minute: '2-digit', second: '2-digit',
   }).formatToParts(date);
@@ -267,7 +284,7 @@ function zoneOffsetMinutes(tzId, date) {
 function zoneAbbr(tzId, data, when) {
   const now = when || new Date();
   try {
-    const name = new Intl.DateTimeFormat('en-US', { timeZone: tzId, timeZoneName: 'short' })
+    const name = getDateTimeFormat(tzId, { timeZoneName: 'short' })
       .formatToParts(now).find(p => p.type === 'timeZoneName')?.value || '';
     if (name && !/^(GMT|UTC)/i.test(name)) return name;
   } catch (e) {}
@@ -306,7 +323,7 @@ function escAttr(s) {
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     TIMEZONE_DATA, DEFAULT_TIMEZONES, STORAGE_KEY, LOCAL_TZ,
-    canonicalTz, dataByKey, keySlug, formatTime,
+    canonicalTz, dataByKey, keySlug, formatTime, getDateTimeFormat,
     dayNumberInZone, zoneOffsetMinutes, zoneAbbr, isDaytime,
     escHtml, escAttr,
   };

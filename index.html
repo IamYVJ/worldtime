@@ -579,11 +579,12 @@ function syncFromStorage() {
 
 function getCurrentTime(tzId, when) {
   const instant = when || new Date();
-  const tzFormatter = new Intl.DateTimeFormat('en-US', {
-    timeZone: tzId, hour: 'numeric', minute: '2-digit', second: '2-digit',
+  // Reuse cached Intl formatters (see getDateTimeFormat in worldtime-data.js) —
+  // this runs once per card on every tick, so re-constructing them would be waste.
+  const parts = getDateTimeFormat(tzId, {
+    hour: 'numeric', minute: '2-digit', second: '2-digit',
     hour12: false, weekday: 'short', month: 'short', day: 'numeric', year: 'numeric',
-  });
-  const parts = tzFormatter.formatToParts(instant);
+  }).formatToParts(instant);
   const get = (type) => parts.find(p => p.type === type)?.value || '';
   const hour = parseInt(get('hour'), 10) % 24;
   const minute = parseInt(get('minute'), 10);
@@ -594,10 +595,9 @@ function getCurrentTime(tzId, when) {
   const year = get('year');
   const dateStr = month + ' ' + day + ', ' + year;
 
-  const tzFormatterOffset = new Intl.DateTimeFormat('en-US', {
-    timeZone: tzId, timeZoneName: 'shortOffset',
-  });
-  const offsetParts = tzFormatterOffset.formatToParts(instant);
+  const offsetParts = getDateTimeFormat(tzId, {
+    timeZoneName: 'shortOffset',
+  }).formatToParts(instant);
   const tzName = offsetParts.find(p => p.type === 'timeZoneName')?.value || '';
   const utcOffset = tzName.replace(/^(GMT|UTC)/, '');
 
