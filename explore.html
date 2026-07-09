@@ -506,18 +506,6 @@ const localCityName = (byKey(LOCAL_TZ) || {}).city || 'Local';
 function adjNow() { return new Date(Date.now() + offsetMinutes * 60000); }
 function utcMinuteOfDay(d) { return d.getUTCHours() * 60 + d.getUTCMinutes(); }
 
-function travelLabel(min) {
-  const sign = min > 0 ? '+' : '-';
-  let total = Math.abs(min);
-  const days = Math.floor(total / 1440); total %= 1440;
-  const h = Math.floor(total / 60), m = total % 60;
-  const segs = [];
-  if (days) segs.push(days + 'd');
-  if (h) segs.push(h + 'h');
-  if (m || !segs.length) segs.push(m + 'm');
-  return sign + segs.join(' ');
-}
-
 function setSliderTrack(slider, value) {
   const pct = (value / 1439) * 100;
   slider.style.background =
@@ -557,7 +545,7 @@ function updateReadout(now) {
   if (mEl) {
     const loc = getCurrentTime(LOCAL_TZ, now);
     let meta = localCityName + ' ' + formatTime(loc.hour, loc.minute, 0, is24h, false);
-    if (offsetMinutes !== 0) meta += ' · ' + travelLabel(offsetMinutes);
+    if (offsetMinutes !== 0) meta += ' · ' + formatTravelOffset(offsetMinutes);
     mEl.textContent = meta;
   }
   const reset = document.getElementById('tbReset');
@@ -635,12 +623,7 @@ function stepDay(delta) {
 }
 
 function applyTheme() {
-  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-  const sun = document.querySelector('.icon-sun');
-  const moon = document.querySelector('.icon-moon');
-  const label = document.getElementById('labelTheme');
-  if (isDark) { sun.style.display = ''; moon.style.display = 'none'; label.textContent = 'Light'; }
-  else { sun.style.display = 'none'; moon.style.display = ''; label.textContent = 'Dark'; }
+  applyThemeToDom(isDark); // shared header theme logic — see worldtime-data.js
 }
 
 function persistTheme() {

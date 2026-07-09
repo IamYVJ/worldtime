@@ -19,6 +19,7 @@ const {
   dataByKey,
   keySlug,
   formatTime,
+  formatTravelOffset,
   getDateTimeFormat,
   dayNumberInZone,
   zoneOffsetMinutes,
@@ -89,6 +90,30 @@ describe('getDateTimeFormat', () => {
   test('the cached formatter is bound to the requested zone', () => {
     const fmt = getDateTimeFormat('Asia/Tokyo', { hour: '2-digit' });
     assert.equal(fmt.resolvedOptions().timeZone, 'Asia/Tokyo');
+  });
+});
+
+describe('formatTravelOffset', () => {
+  test('positive offsets are prefixed with +', () => {
+    assert.equal(formatTravelOffset(210), '+3h 30m');
+    assert.equal(formatTravelOffset(60), '+1h');
+    assert.equal(formatTravelOffset(45), '+45m');
+  });
+
+  test('negative offsets are prefixed with -', () => {
+    assert.equal(formatTravelOffset(-210), '-3h 30m');
+    assert.equal(formatTravelOffset(-90), '-1h 30m');
+  });
+
+  test('rolls whole days into a d segment', () => {
+    assert.equal(formatTravelOffset(1440), '+1d');
+    assert.equal(formatTravelOffset(1500), '+1d 1h');
+    assert.equal(formatTravelOffset(-1501), '-1d 1h 1m');
+  });
+
+  test('drops zero h/m segments but keeps a lone minutes field', () => {
+    assert.equal(formatTravelOffset(120), '+2h');       // no trailing "0m"
+    assert.equal(formatTravelOffset(1), '+1m');
   });
 });
 

@@ -233,6 +233,23 @@ function formatTime(hour, minute, second, use24h, showSeconds = true) {
   return h12 + ':' + pad(minute) + secs + ' ' + (hour < 12 ? 'AM' : 'PM');
 }
 
+// Compact signed label for a time-travel offset in minutes, e.g. 210 -> "+3h 30m",
+// -1500 -> "-1d 1h", 0 -> "-0m". Both pages only ever call it for a non-zero
+// offset (the time-travel banner on index, the map readout on explore), so this
+// replaces the identical copy each one used to carry.
+function formatTravelOffset(min) {
+  const sign = min > 0 ? '+' : '-';
+  let total = Math.abs(min);
+  const d = Math.floor(total / 1440); total %= 1440;
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+  const segs = [];
+  if (d) segs.push(d + 'd');
+  if (h) segs.push(h + 'h');
+  if (m || !segs.length) segs.push(m + 'm');
+  return sign + segs.join(' ');
+}
+
 // ── DST-aware zone math ──────────────────────────────────────────────────────
 // These lean on Intl's IANA tz database, so they stay correct across DST
 // transitions without any hard-coded offset tables. Pure functions of their
@@ -317,14 +334,30 @@ function escAttr(s) {
   return escHtml(s).replace(/"/g, '&quot;');
 }
 
+// Reflect a dark/light choice onto the shared header chrome: the root data-theme
+// attribute plus the sun/moon toggle icon and its "Light"/"Dark" label. Both
+// pages render the same header markup (.icon-sun, .icon-moon, #labelTheme), so
+// this one function replaces the three near-identical copies they used to carry
+// (index's syncControls + toggleTheme, explore's applyTheme). DOM-touching, so
+// it's only ever invoked in the browser — never from the Node unit tests.
+function applyThemeToDom(isDark) {
+  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  const sun = document.querySelector('.icon-sun');
+  const moon = document.querySelector('.icon-moon');
+  const label = document.getElementById('labelTheme');
+  if (sun) sun.style.display = isDark ? '' : 'none';
+  if (moon) moon.style.display = isDark ? 'none' : '';
+  if (label) label.textContent = isDark ? 'Light' : 'Dark';
+}
+
 // CommonJS export for Node-based unit tests. Guarded so the browser — where
 // `module` is undefined and this file is just a <script> — ignores it entirely.
 // Keeps the app build-free while letting `node --test` require these helpers.
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     TIMEZONE_DATA, DEFAULT_TIMEZONES, STORAGE_KEY, LOCAL_TZ,
-    canonicalTz, dataByKey, keySlug, formatTime, getDateTimeFormat,
-    dayNumberInZone, zoneOffsetMinutes, zoneAbbr, isDaytime,
-    escHtml, escAttr,
+    canonicalTz, dataByKey, keySlug, formatTime, formatTravelOffset,
+    getDateTimeFormat, dayNumberInZone, zoneOffsetMinutes, zoneAbbr, isDaytime,
+    escHtml, escAttr, applyThemeToDom,
   };
 }

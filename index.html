@@ -578,12 +578,7 @@ function syncControls() {
   const btnSeconds = document.getElementById('btnSeconds');
   btnSeconds.classList.toggle('active', state.showSeconds);
   btnSeconds.setAttribute('aria-pressed', String(state.showSeconds));
-  document.documentElement.setAttribute('data-theme', state.isDark ? 'dark' : 'light');
-  const sunIcon = document.querySelector('.icon-sun');
-  const moonIcon = document.querySelector('.icon-moon');
-  const label = document.getElementById('labelTheme');
-  if (state.isDark) { sunIcon.style.display = ''; moonIcon.style.display = 'none'; label.textContent = 'Light'; }
-  else { sunIcon.style.display = 'none'; moonIcon.style.display = ''; label.textContent = 'Dark'; }
+  applyThemeToDom(state.isDark); // shared header theme logic — see worldtime-data.js
 }
 
 // Live cross-tab sync. When another tab (this page or explore.html) changes the
@@ -794,16 +789,7 @@ function updateBanner() {
   const banner = document.getElementById('banner');
   const bannerText = document.getElementById('bannerText');
   if (state.offsetMinutes !== 0) {
-    const sign = state.offsetMinutes > 0 ? '+' : '-';
-    let total = Math.abs(state.offsetMinutes);
-    const d = Math.floor(total / 1440); total %= 1440;
-    const h = Math.floor(total / 60);
-    const m = total % 60;
-    const segs = [];
-    if (d) segs.push(d + 'd');
-    if (h) segs.push(h + 'h');
-    if (m || !segs.length) segs.push(m + 'm');
-    bannerText.innerHTML = 'Time Travel Active <strong>' + sign + segs.join(' ') + '</strong>';
+    bannerText.innerHTML = 'Time Travel Active <strong>' + formatTravelOffset(state.offsetMinutes) + '</strong>';
     banner.classList.add('visible');
   } else {
     banner.classList.remove('visible');
@@ -1087,19 +1073,7 @@ function removeTimezone(key) {
 
 function toggleTheme() {
   state.isDark = !state.isDark;
-  document.documentElement.setAttribute('data-theme', state.isDark ? 'dark' : 'light');
-  const sunIcon = document.querySelector('.icon-sun');
-  const moonIcon = document.querySelector('.icon-moon');
-  const label = document.getElementById('labelTheme');
-  if (state.isDark) {
-    sunIcon.style.display = '';
-    moonIcon.style.display = 'none';
-    label.textContent = 'Light';
-  } else {
-    sunIcon.style.display = 'none';
-    moonIcon.style.display = '';
-    label.textContent = 'Dark';
-  }
+  applyThemeToDom(state.isDark); // shared header theme logic — see worldtime-data.js
   saveState();
 }
 
