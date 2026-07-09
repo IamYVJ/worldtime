@@ -488,6 +488,11 @@ function setSliderTrack(slider, value) {
   const pct = (value / 1439) * 100;
   slider.style.background =
     `linear-gradient(to right, var(--color-primary) 0%, var(--color-primary) ${pct}%, var(--color-surface-offset) ${pct}%, var(--color-surface-offset) 100%)`;
+  // The slider scrubs UTC time of day, so announce the wall-clock time it points
+  // at (e.g. "14:30 UTC") instead of the raw 0–1439 minute count screen readers
+  // would otherwise read out.
+  slider.setAttribute('aria-valuetext',
+    formatTime(Math.floor(value / 60), value % 60, 0, is24h, false) + ' UTC');
 }
 
 // Whole-day difference (UTC) between the displayed instant and the real today.

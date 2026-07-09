@@ -658,6 +658,7 @@ function createCard(key) {
 
   const slider = card.querySelector('.slider');
   updateSliderTrack(slider, sliderVal);
+  updateSliderReadout(slider, card.querySelector('.slider-value'), sliderVal);
 
   slider.addEventListener('input', (e) => onSliderInput(e, key));
   const removeBtn = card.querySelector('[data-remove]');
@@ -669,6 +670,18 @@ function createCard(key) {
 function updateSliderTrack(slider, value) {
   const pct = (value / 1439) * 100;
   slider.style.background = `linear-gradient(to right, var(--color-scrub-active) 0%, var(--color-scrub-active) ${pct}%, var(--color-surface-offset) ${pct}%, var(--color-surface-offset) 100%)`;
+}
+
+// Refresh a card slider's readouts from a minute-of-day value: the visible label
+// (which honors the seconds preference) and, for screen readers, aria-valuetext.
+// Without the latter, assistive tech announces the raw slider number ("660")
+// instead of the wall-clock time ("11:00 AM"); seconds are dropped there because
+// the slider is minute-resolution, so they'd always be ":00".
+function updateSliderReadout(slider, valEl, minuteOfDay) {
+  const h = Math.floor(minuteOfDay / 60);
+  const m = minuteOfDay % 60;
+  if (valEl) valEl.textContent = formatTime(h, m, 0, state.is24h, state.showSeconds);
+  if (slider) slider.setAttribute('aria-valuetext', formatTime(h, m, 0, state.is24h, false));
 }
 
 function renderAllCards() {
@@ -747,11 +760,7 @@ function renderAllCards() {
           updateSliderTrack(slider, currentSliderVal);
         }
       }
-      if (valEl) {
-        const h = Math.floor(currentSliderVal / 60);
-        const m = currentSliderVal % 60;
-        valEl.textContent = formatTime(h, m, 0, state.is24h, state.showSeconds);
-      }
+      updateSliderReadout(slider, valEl, currentSliderVal);
     }
   });
 
@@ -998,7 +1007,7 @@ function onSliderInput(event, key) {
 
   const card = slider.closest('.card');
   const valEl = card.querySelector('.slider-value');
-  valEl.textContent = formatTime(Math.floor(newMinuteOfDay / 60), newMinuteOfDay % 60, 0, state.is24h, state.showSeconds);
+  updateSliderReadout(slider, valEl, newMinuteOfDay);
 
   if (!state.isDragging) {
     state.isDragging = true;
