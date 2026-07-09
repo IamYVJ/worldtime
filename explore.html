@@ -222,6 +222,20 @@ a{color:var(--color-primary);text-decoration:none}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--color-text-faint);border-radius:var(--radius-full)}
 ::-webkit-scrollbar-thumb:hover{background:var(--color-text-muted)}
+
+/* Honor the OS "reduce motion" setting. Every transition on this page is
+   decorative (hover lifts, colour/fill fades), so we neutralize them all with a
+   single blanket override rather than gating each rule — that way nothing slips
+   through unguarded, including transitions added later. State changes still take
+   effect; they just apply instantly instead of animating. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
 </style>
 </head>
 <body>
