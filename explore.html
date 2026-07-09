@@ -3,6 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+  // Theme bootstrap — runs before first paint so we never flash the wrong theme.
+  // Honors a saved choice if one exists, otherwise the OS setting
+  // (prefers-color-scheme), defaulting to dark (the house style) when the OS
+  // states no preference. The key string mirrors STORAGE_KEY in worldtime-data.js;
+  // it's duplicated inline here because that file loads too late to prevent a flash.
+  (function () {
+    try {
+      var saved = JSON.parse(localStorage.getItem('worldtime:v1') || 'null');
+      var light = saved && typeof saved.isDark === 'boolean'
+        ? !saved.isDark
+        : !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches);
+      document.documentElement.setAttribute('data-theme', light ? 'light' : 'dark');
+    } catch (e) {}
+  })();
+</script>
 <title>Explore — Worldtime</title>
 <meta name="description" content="Explore Worldtime on an interactive world map: pick any city, watch local times update live across the globe, and see day and night sweep the planet.">
 <meta property="og:type" content="website">
@@ -323,9 +339,13 @@ function readSaved() {
   catch { return null; }
 }
 
+// First-visit theme default: honor the OS colour scheme, falling back to dark
+// (the house style) when the OS states no preference. Mirrors the pre-paint
+// bootstrap in <head>; a saved choice always wins over the OS setting.
+const osPrefersLight = !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches);
 const saved = readSaved();
 let is24h = saved && typeof saved.is24h === 'boolean' ? saved.is24h : true;
-let isDark = saved && typeof saved.isDark === 'boolean' ? saved.isDark : true;
+let isDark = saved && typeof saved.isDark === 'boolean' ? saved.isDark : !osPrefersLight;
 let selectedKeys = (saved && Array.isArray(saved.timezones) && saved.timezones.length)
   ? saved.timezones
   : [LOCAL_TZ, ...DEFAULT_TIMEZONES.filter(tz => tz !== LOCAL_TZ)];

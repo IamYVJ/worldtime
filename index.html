@@ -3,6 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+  // Theme bootstrap — runs before first paint so we never flash the wrong theme.
+  // Honors a saved choice if one exists, otherwise the OS setting
+  // (prefers-color-scheme), defaulting to dark (the house style) when the OS
+  // states no preference. The key string mirrors STORAGE_KEY in worldtime-data.js;
+  // it's duplicated inline here because that file loads too late to prevent a flash.
+  (function () {
+    try {
+      var saved = JSON.parse(localStorage.getItem('worldtime:v1') || 'null');
+      var light = saved && typeof saved.isDark === 'boolean'
+        ? !saved.isDark
+        : !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches);
+      document.documentElement.setAttribute('data-theme', light ? 'light' : 'dark');
+    } catch (e) {}
+  })();
+</script>
 <title>Worldtime — See the world, one hour at a time</title>
 <meta name="description" content="A living world clock: track cities across every timezone at a glance, then travel the slider forward or back through time to see what hour it is anywhere on Earth.">
 <meta property="og:type" content="website">
@@ -501,10 +517,17 @@ a{color:var(--color-primary);text-decoration:none}
 // call sites in this file keep working unchanged.
 const domId = keySlug;
 
+// First-visit theme default: honor the OS colour scheme, falling back to dark
+// (the house style) when the OS states no preference. This mirrors the pre-paint
+// bootstrap in <head>; loadState() overrides it once a saved choice exists.
+function osPrefersLight() {
+  return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches);
+}
+
 const state = {
   timezones: [LOCAL_TZ, ...DEFAULT_TIMEZONES.filter(tz => tz !== LOCAL_TZ)],
   is24h: true,
-  isDark: true,
+  isDark: !osPrefersLight(),
   showSeconds: true,
   view: 'clocks',
   mapCentered: false,
