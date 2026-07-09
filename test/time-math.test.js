@@ -25,6 +25,8 @@ const {
   zoneOffsetMinutes,
   zoneAbbr,
   isDaytime,
+  citiesToParam,
+  citiesFromParam,
 } = require('../worldtime-data.js');
 
 // Mid-winter / mid-summer (northern hemisphere) reference instants.
@@ -127,6 +129,40 @@ describe('keySlug', () => {
   test('is collision-free across the whole catalog', () => {
     const slugs = TIMEZONE_DATA.map((d) => keySlug(d.key));
     assert.equal(new Set(slugs).size, slugs.length);
+  });
+});
+
+describe('citiesToParam / citiesFromParam', () => {
+  // The two are inverses for any list of valid catalog keys — this is the whole
+  // contract the shareable-link feature relies on. Alias keys (with '/' and '|')
+  // are the interesting case; they must survive the comma-joined round trip.
+  test('round-trips a selection of plain and alias keys', () => {
+    const keys = ['UTC', 'America/New_York', 'Asia/Kolkata', 'America/New_York|Boston'];
+    assert.deepEqual(citiesFromParam(citiesToParam(keys)), keys);
+  });
+
+  test('serializes to a comma-joined string', () => {
+    assert.equal(
+      citiesToParam(['UTC', 'Europe/London', 'America/New_York|Miami']),
+      'UTC,Europe/London,America/New_York|Miami'
+    );
+  });
+
+  test('drops unknown, empty, and whitespace-only entries when parsing', () => {
+    assert.deepEqual(
+      citiesFromParam('UTC,No/Such_Zone,,  ,Asia/Tokyo'),
+      ['UTC', 'Asia/Tokyo']
+    );
+  });
+
+  test('trims surrounding whitespace around otherwise-valid keys', () => {
+    assert.deepEqual(citiesFromParam(' UTC , Asia/Tokyo '), ['UTC', 'Asia/Tokyo']);
+  });
+
+  test('returns an empty array for empty / null / undefined input', () => {
+    assert.deepEqual(citiesFromParam(''), []);
+    assert.deepEqual(citiesFromParam(null), []);
+    assert.deepEqual(citiesFromParam(undefined), []);
   });
 });
 

@@ -223,6 +223,30 @@ function keySlug(key) {
   return String(key).replace(/[^a-zA-Z0-9]+/g, '_');
 }
 
+// ── Shareable-URL city list ──────────────────────────────────────────────────
+// The visible city selection can be shared by link through a `?cities=` query
+// param. These two pure functions define the on-the-wire format both pages agree
+// on. Keys are joined with commas — no catalog key contains one (they're IANA ids
+// and "id|City" aliases) — and percent-encoding of the individual characters
+// ('/', '|', non-ASCII city names) is delegated to the URL / URLSearchParams
+// platform APIs the pages build and read the link with. Parsing keeps only keys
+// that resolve to a real catalog entry, so a stale or hand-edited link degrades
+// gracefully instead of injecting unknown zones. No page state, no DOM — unit-
+// testable under Node.
+const CITIES_PARAM = 'cities';
+
+function citiesToParam(keys) {
+  return keys.join(',');
+}
+
+function citiesFromParam(value) {
+  if (!value) return [];
+  return value.split(',')
+    .map(s => s.trim())
+    .filter(Boolean)
+    .filter(k => !!dataByKey(k));
+}
+
 // Format a wall-clock time. 24h -> "HH:MM[:SS]"; 12h -> "H:MM[:SS] AM/PM".
 function formatTime(hour, minute, second, use24h, showSeconds = true) {
   const pad = (n) => String(n).padStart(2, '0');
@@ -350,14 +374,79 @@ function applyThemeToDom(isDark) {
   if (label) label.textContent = isDark ? 'Light' : 'Dark';
 }
 
+// ── Copy-link ("share") button plumbing ──────────────────────────────────────
+// Both pages carry an identical Share button (#btnShare / #labelShare) that
+// copies a `?cities=` link to the current selection. The pieces below are shared
+// so the two pages behave the same; the only per-page difference is which key
+// list gets encoded (index's state.timezones vs explore's selectedKeys), passed
+// in by the click handler. DOM-touching, so only ever called in the browser.
+
+// Absolute URL to the current page carrying the given selection as `?cities=`,
+// with any pre-existing query/hash stripped first.
+function buildCitiesUrl(keys) {
+  const url = new URL(window.location.href);
+  url.hash = '';
+  url.search = '';
+  url.searchParams.set(CITIES_PARAM, citiesToParam(keys));
+  return url.toString();
+}
+
+// Copy text to the clipboard, resolving to whether it worked. Prefers the async
+// Clipboard API (secure contexts); falls back to an off-screen <textarea> +
+// execCommand('copy') for file:// or plain-http pages where that API is absent.
+async function copyTextToClipboard(text) {
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch (e) { /* fall through to the legacy path below */ }
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.top = '-1000px';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  } catch (e) { return false; }
+}
+
+// Briefly reflect a copy attempt on the Share button: swap its label and
+// highlight it, then restore after a moment. Restores to "Share" regardless of
+// how many times it's clicked in quick succession.
+let _shareFlashTimer = null;
+function flashShareFeedback(ok) {
+  const btn = document.getElementById('btnShare');
+  const label = document.getElementById('labelShare');
+  if (_shareFlashTimer) { clearTimeout(_shareFlashTimer); _shareFlashTimer = null; }
+  if (label) label.textContent = ok ? 'Copied!' : 'Copy failed';
+  if (btn) btn.classList.add('active');
+  _shareFlashTimer = setTimeout(() => {
+    if (label) label.textContent = 'Share';
+    if (btn) btn.classList.remove('active');
+    _shareFlashTimer = null;
+  }, 1600);
+}
+
+// One-call click handler: build the link for `keys`, copy it, flash feedback.
+function copyShareLink(keys) {
+  copyTextToClipboard(buildCitiesUrl(keys)).then(flashShareFeedback);
+}
+
 // CommonJS export for Node-based unit tests. Guarded so the browser — where
 // `module` is undefined and this file is just a <script> — ignores it entirely.
 // Keeps the app build-free while letting `node --test` require these helpers.
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
-    TIMEZONE_DATA, DEFAULT_TIMEZONES, STORAGE_KEY, LOCAL_TZ,
+    TIMEZONE_DATA, DEFAULT_TIMEZONES, STORAGE_KEY, LOCAL_TZ, CITIES_PARAM,
     canonicalTz, dataByKey, keySlug, formatTime, formatTravelOffset,
     getDateTimeFormat, dayNumberInZone, zoneOffsetMinutes, zoneAbbr, isDaytime,
     escHtml, escAttr, applyThemeToDom,
+    citiesToParam, citiesFromParam,
   };
 }

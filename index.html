@@ -462,6 +462,10 @@ a{color:var(--color-primary);text-decoration:none}
       <svg class="icon icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:none"><path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/></svg>
       <span class="label" id="labelTheme">Light</span>
     </button>
+    <button class="toggle-btn" id="btnShare" aria-label="Copy a shareable link to this selection" title="Copy shareable link">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></svg>
+      <span class="label" id="labelShare">Share</span>
+    </button>
   </div>
 </header>
 
@@ -569,6 +573,29 @@ function loadState() {
   if (typeof saved.is24h === 'boolean') state.is24h = saved.is24h;
   if (typeof saved.isDark === 'boolean') state.isDark = saved.isDark;
   if (typeof saved.showSeconds === 'boolean') state.showSeconds = saved.showSeconds;
+}
+
+// Consume a shared `?cities=` deep link, if one is present and resolves to at
+// least one known city. Runs right after loadState() so a shared link takes
+// precedence over the saved selection. The chosen cities go through the same
+// normalization as loadState (local zone pinned first, deduped), are persisted so
+// a reload or other tab keeps them, and the param is then stripped from the
+// address bar via replaceState — leaving a clean URL and no stale link once the
+// user edits their own selection. citiesFromParam lives in worldtime-data.js.
+function applyUrlCities() {
+  let keys;
+  try {
+    keys = citiesFromParam(new URLSearchParams(window.location.search).get(CITIES_PARAM));
+  } catch (e) { return; }
+  if (!keys.length) return;
+  const rest = [...new Set(keys.filter(k => k !== LOCAL_TZ))];
+  state.timezones = [LOCAL_TZ, ...rest];
+  saveState();
+  try {
+    const url = new URL(window.location.href);
+    url.searchParams.delete(CITIES_PARAM);
+    window.history.replaceState(null, '', url.pathname + url.search + url.hash);
+  } catch (e) { /* replaceState can throw on file:// — harmless, leave the URL */ }
 }
 
 // Reflect the current preference state onto the header controls and theme. Used
@@ -1129,17 +1156,20 @@ function renderAddList(query) {
 
 function init() {
   loadState();
+  applyUrlCities(); // a shared ?cities= link overrides the saved selection
   syncControls();
 
   const btn24h = document.getElementById('btn24h');
   const btnSeconds = document.getElementById('btnSeconds');
   const btnTheme = document.getElementById('btnTheme');
+  const btnShare = document.getElementById('btnShare');
   const btnReset = document.getElementById('btnReset');
   const addSearch = document.getElementById('addSearch');
 
   btn24h.addEventListener('click', toggle24h);
   btnSeconds.addEventListener('click', toggleSeconds);
   btnTheme.addEventListener('click', toggleTheme);
+  btnShare.addEventListener('click', () => copyShareLink(state.timezones));
   btnReset.addEventListener('click', resetToNow);
 
   // WAI-ARIA tabs: click to select, plus arrow/Home/End keyboard navigation with
