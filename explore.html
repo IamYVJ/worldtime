@@ -234,6 +234,10 @@ a{color:var(--color-primary);text-decoration:none}
   max-width:1200px;margin:0 auto;padding:1.5rem 1.75rem 2.5rem;
   text-align:center;font-size:0.6875rem;color:var(--color-text-faint);letter-spacing:0.02em;
 }
+/* Visitor footnote. No `display` on .visitor-counter: it would override the
+   `hidden` attribute and show a bare "— visitors" when GoatCounter is blocked. */
+.visitor-counter{margin-top:0.375rem;font-size:0.625rem;letter-spacing:0.04em;color:var(--color-text-faint)}
+.visitor-count{font-variant-numeric:tabular-nums;color:var(--color-text-muted)}
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--color-text-faint);border-radius:var(--radius-full)}
@@ -326,6 +330,9 @@ a{color:var(--color-primary);text-decoration:none}
 
 <footer class="footer">
   <p id="footerNote">Worldtime — Explore.</p>
+  <p class="visitor-counter" hidden>
+    <span id="visitor-count" class="visitor-count">—</span> visitors
+  </p>
 </footer>
 
 <script src="worldmap.js"></script>
@@ -706,9 +713,16 @@ function init() {
   });
 
   startTimer();
+  showVisitorCount(); // decorative GoatCounter footnote — see worldtime-data.js
 }
 
 document.addEventListener('DOMContentLoaded', init);
 </script>
+<!-- GoatCounter pageview beacon. One site shared across all projects on purpose:
+     counts are per-path, so each project is separated by its own pathname. -->
+<script
+  data-goatcounter="https://yvj.goatcounter.com/count"
+  async
+  src="//gc.zgo.at/count.js"></script>
 </body>
 </html>

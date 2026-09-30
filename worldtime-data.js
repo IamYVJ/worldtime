@@ -438,6 +438,50 @@ function copyShareLink(keys) {
   copyTextToClipboard(buildCitiesUrl(keys)).then(flashShareFeedback);
 }
 
+// ── Visitor footnote (GoatCounter) ───────────────────────────────────────────
+// Both pages carry a hidden `.visitor-counter` footnote in their footer and, as
+// the last tag in <body>, the GoatCounter pageview beacon. This reads back this
+// page's all-time count and un-hides the footnote. It's decorative, so every
+// failure (adblocker, offline, a brand-new path with no data yet, the "visitor
+// counts" setting off) leaves it hidden. Each page calls it from its
+// DOMContentLoaded init: this file loads before the beacon tag, so at parse time
+// the tag the endpoint is read from isn't in the DOM yet. DOM-touching, so only
+// ever called in the browser.
+function showVisitorCount() {
+  const box = document.querySelector('.visitor-counter');
+  const out = document.getElementById('visitor-count');
+  if (!box || !out) return;
+
+  // Read the endpoint off the beacon tag so the site URL lives in one place.
+  const tag = document.querySelector('script[data-goatcounter]');
+  const endpoint = tag?.dataset.goatcounter;
+  if (!endpoint) return;
+
+  // This page's path only — never /counter/TOTAL.json, which sums every project
+  // on the shared site. pathname WITHOUT location.search, on purpose: a visitor
+  // arriving via a ?cities= share link is still shown the clean path's total. A
+  // trailing index.html folds into its directory, because explore.html's
+  // "Clocks" link lands on …/index.html, and that page should show the same
+  // number as …/ rather than a separate, near-empty count.
+  const path = window.location.pathname.replace(/index\.html$/, '');
+
+  // A fixed date before this project's first pageview. All-time is the default,
+  // so this doesn't change the count; it gives the response its own cache key.
+  const START = '2026-01-01';
+
+  fetch(`${endpoint.replace(/\/count$/, '')}/counter/${encodeURIComponent(path)}.json?start=${START}`)
+    .then((res) => (res.ok ? res.json() : Promise.reject(new Error('bad status'))))
+    .then((data) => {
+      // `count` is already a formatted string: render it as-is. GoatCounter
+      // caches this response for ~4h, so a fresh visit won't move it immediately.
+      if (data && data.count != null) {
+        out.textContent = String(data.count);
+        box.hidden = false;
+      }
+    })
+    .catch(() => { /* decorative: stay hidden */ });
+}
+
 // CommonJS export for Node-based unit tests. Guarded so the browser — where
 // `module` is undefined and this file is just a <script> — ignores it entirely.
 // Keeps the app build-free while letting `node --test` require these helpers.
