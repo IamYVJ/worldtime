@@ -440,13 +440,38 @@ function copyShareLink(keys) {
 
 // ── Visitor footnote (GoatCounter) ───────────────────────────────────────────
 // Both pages carry a hidden `.visitor-counter` footnote in their footer and, as
-// the last tag in <body>, the GoatCounter pageview beacon. This reads back this
-// page's all-time count and un-hides the footnote. It's decorative, so every
-// failure (adblocker, offline, a brand-new path with no data yet, the "visitor
-// counts" setting off) leaves it hidden. Each page calls it from its
-// DOMContentLoaded init: this file loads before the beacon tag, so at parse time
-// the tag the endpoint is read from isn't in the DOM yet. DOM-touching, so only
-// ever called in the browser.
+// the last tag in <body>, the GoatCounter pageview beacon. Every page shows the
+// same project-wide number: the sum of each page's own visit count. GoatCounter
+// counts a visit once per session *per path*, so opening both pages adds two,
+// while a reload or a round trip back to a page already seen adds nothing.
+
+// Every page of the app, relative to its directory ('' is index.html). The
+// footnote sums exactly these, so a new page must be listed here too (a unit
+// test checks this against the .html files in the repo).
+const COUNTED_PAGES = ['', 'explore.html'];
+
+// The path a page's visits are recorded under and read back from: its pathname
+// with a trailing index.html folded into the directory, because explore.html's
+// "Clocks" link lands on …/index.html and that mustn't count as a third page.
+// No query string either: a ?cities= share link is still a visit to the page.
+function visitPath(pathname) {
+  return pathname.replace(/index\.html$/, '');
+}
+
+// Have count.js record visits under visitPath() instead of its default
+// (pathname + query; it still sends the query separately). Must be set before
+// count.js runs, which this file guarantees by loading ahead of the async
+// beacon. Browser-only, hence the guard: Node's unit tests load this file too.
+if (typeof window !== 'undefined') {
+  window.goatcounter = window.goatcounter || {};
+  window.goatcounter.path = () => visitPath(window.location.pathname);
+}
+
+// Read back every page's all-time count and show the total. It's decorative, so
+// every failure (adblocker, offline, the "visitor counts" setting off) leaves it
+// hidden. Each page calls it from its DOMContentLoaded init: this file loads
+// before the beacon tag, so at parse time the tag the endpoint is read from isn't
+// in the DOM yet. DOM-touching, so only ever called in the browser.
 function showVisitorCount() {
   const box = document.querySelector('.visitor-counter');
   const out = document.getElementById('visitor-count');
@@ -456,28 +481,39 @@ function showVisitorCount() {
   const tag = document.querySelector('script[data-goatcounter]');
   const endpoint = tag?.dataset.goatcounter;
   if (!endpoint) return;
-
-  // This page's path only — never /counter/TOTAL.json, which sums every project
-  // on the shared site. pathname WITHOUT location.search, on purpose: a visitor
-  // arriving via a ?cities= share link is still shown the clean path's total. A
-  // trailing index.html folds into its directory, because explore.html's
-  // "Clocks" link lands on …/index.html, and that page should show the same
-  // number as …/ rather than a separate, near-empty count.
-  const path = window.location.pathname.replace(/index\.html$/, '');
+  const base = endpoint.replace(/\/count$/, '');
 
   // A fixed date before this project's first pageview. All-time is the default,
   // so this doesn't change the count; it gives the response its own cache key.
   const START = '2026-01-01';
 
-  fetch(`${endpoint.replace(/\/count$/, '')}/counter/${encodeURIComponent(path)}.json?start=${START}`)
-    .then((res) => (res.ok ? res.json() : Promise.reject(new Error('bad status'))))
-    .then((data) => {
-      // `count` is already a formatted string: render it as-is. GoatCounter
-      // caches this response for ~4h, so a fresh visit won't move it immediately.
-      if (data && data.count != null) {
-        out.textContent = String(data.count);
-        box.hidden = false;
-      }
+  // This app's own pages only — never /counter/TOTAL.json, which sums every
+  // project on the shared site. The directory comes from pathname WITHOUT
+  // location.search, so it's the same whichever page (or share link) this is.
+  const dir = window.location.pathname.replace(/[^/]*$/, '');
+
+  const readCount = (path) =>
+    fetch(`${base}/counter/${encodeURIComponent(path)}.json?start=${START}`).then((res) => {
+      if (res.status === 404) return 0; // no visits recorded for this page yet
+      if (!res.ok) throw new Error('bad status');
+      // `count` is a string with thousands separators ("1,234"): strip them so
+      // the pages can be summed.
+      return res.json().then((data) => {
+        const n = parseInt(String(data && data.count).replace(/\D/g, ''), 10);
+        if (Number.isNaN(n)) throw new Error('bad count');
+        return n;
+      });
+    });
+
+  // One failed read hides the footnote rather than showing a partial total.
+  // GoatCounter caches each response for ~4h, so a fresh visit won't move it
+  // immediately.
+  Promise.all(COUNTED_PAGES.map((page) => readCount(dir + page)))
+    .then((counts) => {
+      const total = counts.reduce((sum, n) => sum + n, 0);
+      if (!total) return; // nothing recorded on any page yet: stay hidden
+      out.textContent = total.toLocaleString('en-US');
+      box.hidden = false;
     })
     .catch(() => { /* decorative: stay hidden */ });
 }
@@ -492,5 +528,6 @@ if (typeof module !== 'undefined' && module.exports) {
     getDateTimeFormat, dayNumberInZone, zoneOffsetMinutes, zoneAbbr, isDaytime,
     escHtml, escAttr, applyThemeToDom,
     citiesToParam, citiesFromParam,
+    COUNTED_PAGES, visitPath,
   };
 }
